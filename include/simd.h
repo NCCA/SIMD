@@ -1,7 +1,7 @@
 #ifndef SIMD_H_
 #define SIMD_H_
 
-#define __AVX2__ 
+#define __SSE3__ 1
 # ifdef __AVX2__
 #  include <immintrin.h>
 # endif
