@@ -1,16 +1,16 @@
 // build
-// clang++ -std=c++11 -mfma -msse3 -m64 -O3 -ffast-math main.cpp -o test
+// clang++ -std=c++11 -mfma -mSSE4 -m64 -O3 -ffast-math main.cpp -o test
 
-#include <pmmintrin.h>
+#include "simd.h"
 #include <iostream>
 #include <cmath>
 #include <gtest/gtest.h>
 
 
-TEST(SSE3,_mm_loadu_ps)
+TEST(SSE4,_mm_loadu_ps)
 {
   float data[]={1.0f, 2.0f, 3.0f, 4.0f};
-  __m128 a=_mm_loadu_ps(&data[0]);
+  f128 a=loadu4f(&data[0]);
   printf("result %f %f %f %f \n",a[0],a[1],a[2],a[3]);
   // Note Ordering
   ASSERT_FLOAT_EQ((a[0]),1.0f);
@@ -20,10 +20,10 @@ TEST(SSE3,_mm_loadu_ps)
 
 }
 
-TEST(SSE3,_mm_load_ps)
+TEST(SSE4,_mm_load_ps)
 {
   float data[]={1.0f, 2.0f, 3.0f, 4.0f};
-  __m128 a=_mm_load_ps(&data[0]);
+  f128 a=load4f(&data[0]);
   printf("result %f %f %f %f \n",a[0],a[1],a[2],a[3]);
   // Note Ordering
   ASSERT_FLOAT_EQ((a[0]),1.0f);
@@ -33,26 +33,26 @@ TEST(SSE3,_mm_load_ps)
 
 }
 
-TEST(SSE3,_mm_set_ps)
+TEST(SSE4,set4f)
 {
-  __m128 a=_mm_set_ps(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
   // we can access vector elements directly (not recommneded due to alignment issues)
   printf("result %f %f %f %f \n",a[0],a[1],a[2],a[3]);
   // Note Ordering
-  ASSERT_FLOAT_EQ((a[0]),4.0f);
-  ASSERT_FLOAT_EQ(a[1],3.0f);
-  ASSERT_FLOAT_EQ(a[2],2.0f);
-  ASSERT_FLOAT_EQ(a[3],1.0f);
+  ASSERT_FLOAT_EQ((a[0]),1.0f);
+  ASSERT_FLOAT_EQ(a[1],2.0f);
+  ASSERT_FLOAT_EQ(a[2],3.0f);
+  ASSERT_FLOAT_EQ(a[3],4.0f);
 }
 
-TEST(SSE3,setr_ps)
+TEST(SSE4,set4fCast)
 {
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
   // note we can access the data by re-casting to float
   // again best not too
   float *r = reinterpret_cast<float*>(&a);
 
-  std::cout<<"restult "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   // Note order of data (due to the (r)everse function )
   ASSERT_FLOAT_EQ(r[0],1.0f);
   ASSERT_FLOAT_EQ(r[1],2.0f);
@@ -62,13 +62,13 @@ TEST(SSE3,setr_ps)
 }
 
 
-TEST(SSE3,setZero)
+TEST(SSE4,zero4f)
 {
   // _mm_setzero_ps sets all elements to zero
-  __m128 a=_mm_setzero_ps();
+  f128 a=zero4f();
   // get result by using the storeu_ps is prefered
   float r[4];
-  _mm_storeu_ps(r,a);
+  storeu4f(r,a);
   std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   ASSERT_FLOAT_EQ(r[0],0.0f);
   ASSERT_FLOAT_EQ(r[1],0.0f);
@@ -76,13 +76,13 @@ TEST(SSE3,setZero)
   ASSERT_FLOAT_EQ(r[3],0.0f);
 }
 
-TEST(SSE3,_mm_set1_ps)
+TEST(SSE4,splat4f)
 {
   // _mm_set1_ps sets all elements to value passed (splat!)
-  __m128 a=_mm_set1_ps(0.9991f);
+  f128 a=splat4f(0.9991f);
   // get result by using the storeu_ps is prefered
   float r[4];
-  _mm_storeu_ps(r,a);
+  storeu4f(r,a);
   std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
 
   ASSERT_FLOAT_EQ(r[0],0.9991f);
@@ -96,16 +96,16 @@ TEST(SSE3,_mm_set1_ps)
 
 
 
-TEST(SSE3,_mm_add_ps)
+TEST(SSE4,add4f)
 {
   // load data into data type
-  __m128 a=_mm_setr_ps(5, 6, 7, 8);
-  __m128 b=_mm_setr_ps(1, 2, 3, 4);
+  f128 a=set4f(5, 6, 7, 8);
+  f128 b=set4f(1, 2, 3, 4);
   // execute an add
-  __m128 res=_mm_add_ps(a, b);
+  f128 res=add4f(a, b);
   // get result by using
   float r[4];  
-  _mm_storeu_ps(r,res);
+  storeu4f(r,res);
 
   std::cout<<"add result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   ASSERT_FLOAT_EQ(r[0],6);
@@ -114,31 +114,13 @@ TEST(SSE3,_mm_add_ps)
   ASSERT_FLOAT_EQ(r[3],12);
 }
 
-TEST(SSE3,_mm_add_ss)
+
+
+TEST(SSE4,sub4f)
 {
-  // load data into data type
-  __m128 a=_mm_setr_ps(5, 6, 7, 8);
-  __m128 b=_mm_setr_ps(1, 2, 3, 4);
-  // execute an add on only the lowest bit (5 + 1) in this case
-  __m128 res=_mm_add_ss(a, b);
-  // get result by using
-  float r[4];
-  _mm_storeu_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],6);
-  ASSERT_FLOAT_EQ(r[1],6);
-  ASSERT_FLOAT_EQ(r[2],7);
-  ASSERT_FLOAT_EQ(r[3],8);
-}
-
-
-
-TEST(SSE3,_mm_sub_ps)
-{
-  __m128 a=_mm_setr_ps(5, 6, 7, 8);
-  __m128 b=_mm_setr_ps(1, 2, 3, 4);
-  __m128 res=_mm_sub_ps(a, b);
+  f128 a=set4f(5, 6, 7, 8);
+  f128 b=set4f(1, 2, 3, 4);
+  f128 res=sub4f(a, b);
   float r[4];  
   _mm_store_ps(r,res);
 
@@ -150,29 +132,14 @@ TEST(SSE3,_mm_sub_ps)
 
 }
 
-TEST(SSE3,_mm_sub_ss)
+
+
+
+TEST(SSE4,mul4f)
 {
-  __m128 a=_mm_setr_ps(5, 6, 7, 8);
-  __m128 b=_mm_setr_ps(1, 2, 3, 4);
-  __m128 res=_mm_sub_ss(a, b);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"sub result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],4);
-  ASSERT_FLOAT_EQ(r[1],6);
-  ASSERT_FLOAT_EQ(r[2],7);
-  ASSERT_FLOAT_EQ(r[3],8);
-
-}
-
-
-
-TEST(SSE3,_mm_mul_ps)
-{
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 4.0f);
-  __m128 b=_mm_set1_ps(0.5f);
-  __m128 res=_mm_mul_ps(a, b);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 b=splat4f(0.5f);
+  f128 res=mul4f(a, b);
   float r[4];
   _mm_store_ps(r,res);
 
@@ -184,27 +151,12 @@ TEST(SSE3,_mm_mul_ps)
 
 }
 
-TEST(SSE3,_mm_mul_ss)
+
+TEST(SSE4,div4f)
 {
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 4.0f);
-  __m128 b=_mm_set1_ps(0.5f);
-  __m128 res=_mm_mul_ss(a, b);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],0.5f);
-  ASSERT_FLOAT_EQ(r[1],2.0f);
-  ASSERT_FLOAT_EQ(r[2],3.0f);
-  ASSERT_FLOAT_EQ(r[3],4.0f);
-
-}
-
-TEST(SSE3,_mm_div_ps)
-{
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 4.0f);
-  __m128 b=_mm_set1_ps(2.0f);
-  __m128 res=_mm_div_ps(a, b);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 b=splat4f(2.0f);
+  f128 res=div4f(a, b);
   float r[4];
   _mm_store_ps(r,res);
 
@@ -216,28 +168,13 @@ TEST(SSE3,_mm_div_ps)
 
 }
 
-TEST(SSE3,_mm_div_ss)
-{
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 4.0f);
-  __m128 b=_mm_set1_ps(2.0f);
-  __m128 res=_mm_div_ss(a, b);
-  float r[4];
-  _mm_store_ps(r,res);
 
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],0.5f);
-  ASSERT_FLOAT_EQ(r[1],2.0f);
-  ASSERT_FLOAT_EQ(r[2],3.0f);
-  ASSERT_FLOAT_EQ(r[3],4.0f);
-
-}
-
-TEST(SSE3,_mm_div_psZero)
+TEST(SSE4,_mm_div_psZero)
 {
   // test to see what division by zero does
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 4.0f);
-  __m128 b=_mm_set1_ps(0.0f);
-  __m128 res=_mm_div_ps(a, b);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 b=splat4f(0.0f);
+  f128 res=div4f(a, b);
   float r[4];
   _mm_store_ps(r,res);
   // should set all values to inf
@@ -248,14 +185,14 @@ TEST(SSE3,_mm_div_psZero)
   ASSERT_TRUE (isinf(r[3]));
 }
 
-TEST(SSE3,length)
+TEST(SSE4,length)
 {
   // create a 3 float vector with last component 0
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 0.0f);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 0.0f);
   // multiply a*a
-  auto r1 = _mm_mul_ps(a, a);
+  auto r1 = mul4f(a, a);
   float r[4];
-  _mm_store_ps(r,r1);
+  storeu4f(r,r1);
   // should set all values to inf
   std::cout<<"mul "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   // The haddps instruction performs a horizontal add, meaning that
@@ -264,12 +201,12 @@ TEST(SSE3,length)
   //operand b  (B3, B2, B1, B0)
   // is (B3 + B2, B1 + B0, A3 + A2, A1 + A0).
   auto r2 = _mm_hadd_ps(r1, r1);
-  _mm_store_ps(r,r2);
+  storeu4f(r,r2);
   // should set all values to inf
   std::cout<<"hadd1 "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
 
   auto r3 = _mm_hadd_ps(r2, r2);
-  _mm_store_ps(r,r3);
+  storeu4f(r,r3);
   // should set all values to inf
   std::cout<<"hadd1 "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   // now we are going to use _mm_cvtss_f32 to extract the lower order floating point
@@ -283,14 +220,14 @@ TEST(SSE3,length)
 }
 
 
-TEST(SSE3,_mm_rcpps_ps)
+TEST(SSE4,_mm_rcpps_ps)
 {
   // create a 4 float vector
-  __m128 a=_mm_setr_ps(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
   // evauate 1/a for each vector component
   auto r1 = _mm_rcp_ps(a);
   float r[4];
-  _mm_store_ps(r,r1);
+  storeu4f(r,r1);
   // should set all values to inf
   std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   EXPECT_NEAR(r[0],1.0f/1.0f,0.001);
@@ -301,15 +238,15 @@ TEST(SSE3,_mm_rcpps_ps)
 }
 
 
-TEST(SSE3,_mm_max_ps)
+TEST(SSE4,_mm_max_ps)
 {
   // create a 4 float vector
-  __m128 a=_mm_setr_ps(1.0f, 9.0f, 3.0f, 3.0f);
-  __m128 b=_mm_setr_ps(2.0f, 5.0f, 6.0f, 4.0f);
+  f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
+  f128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
   // evauate 1/a for each vector component
   auto r1 = _mm_max_ps(a,b);
   float r[4];
-  _mm_store_ps(r,r1);
+  storeu4f(r,r1);
   // should set all values to inf
   std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   ASSERT_FLOAT_EQ(r[0],2.0f);
@@ -318,15 +255,15 @@ TEST(SSE3,_mm_max_ps)
   ASSERT_FLOAT_EQ(r[3],4.0f);
 }
 
-TEST(SSE3,_mm_min_ps)
+TEST(SSE4,_mm_min_ps)
 {
   // create a 4 float vector
-  __m128 a=_mm_setr_ps(1.0f, 9.0f, 3.0f, 3.0f);
-  __m128 b=_mm_setr_ps(2.0f, 5.0f, 6.0f, 4.0f);
+  f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
+  f128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
   // evauate 1/a for each vector component
   auto r1 = _mm_min_ps(a,b);
   float r[4];
-  _mm_store_ps(r,r1);
+  storeu4f(r,r1);
   // should set all values to inf
   std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   ASSERT_FLOAT_EQ(r[0],1.0f);
