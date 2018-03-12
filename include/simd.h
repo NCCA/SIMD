@@ -74,6 +74,19 @@ inline d128 zero2d() { return _mm_setzero_pd(); }
 
 // store
 
+inline void store4f(void* const ptr, const f128 reg)
+{
+  _mm_store_ps(static_cast<float *>(ptr), reg);
+}
+inline void store4i(void* const ptr, const i128 reg)
+{
+  _mm_store_si128(static_cast<i128*>(ptr), reg);
+}
+inline void store2d(void* const ptr, const d128 reg)
+{
+  _mm_store_pd(static_cast<double*>(ptr), reg);
+}
+
 inline void storeu4f(void* const ptr, const f128 reg) 
 { 
   _mm_storeu_ps(static_cast<float *>(ptr), reg);
@@ -107,5 +120,22 @@ inline i128 sub2i64(const i128 a, const i128 b) { return _mm_sub_epi64(a, b); }
 inline f128 div4f(const f128 a, const f128 b) { return _mm_div_ps(a, b); }
 inline d128 div2d(const d128 a, const d128 b) { return _mm_div_pd(a, b); }
 
+// conversion
+
+inline float convertf32(const f128 a)
+{
+  return _mm_cvtss_f32(a);
+}
+
+// math
+// sqrt lowest register pass rest
+inline f128 sqrt1f(const f128 a)
+{
+  return _mm_sqrt_ss(a);
+}
+
+// Note this is already defined as a macro so
+// it can't be turned into a function.
+#define dot4f(a,b,mask) _mm_dp_ps(a,b,mask)
 
 #endif

@@ -11,7 +11,7 @@ TEST(SSE3,_mm_loadu_ps)
 {
   float data[]={1.0f, 2.0f, 3.0f, 4.0f};
   __m128 a=_mm_loadu_ps(&data[0]);
-  printf("result %f %f %f %f \n",a[0],a[1],a[2],a[3]);
+  printf("result %f %f %f %f \n",a[1],a[1],a[2],a[3]);
   // Note Ordering
   ASSERT_FLOAT_EQ((a[0]),1.0f);
   ASSERT_FLOAT_EQ(a[1],2.0f);

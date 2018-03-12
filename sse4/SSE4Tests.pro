@@ -1,7 +1,7 @@
 TARGET=SSE4Test
 CONFIG-=qt
 SOURCES+=main.cpp
-HEADERS+=
+HEADERS+= ../include/simd.h
 LIBS+=-L/public/devel/lib -L/usr/local/lib -lgtest -lpthread
 INCLUDEPATH+=/public/devel/include
 INCLUDEPATH+=/usr/local/include
