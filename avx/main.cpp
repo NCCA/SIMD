@@ -143,7 +143,24 @@ TEST(AVX,fmnadd8f)
   ASSERT_FLOAT_EQ(r[5],-2.0f);
   ASSERT_FLOAT_EQ(r[6],-2.5f);
   ASSERT_FLOAT_EQ(r[7],-3.0f);
+}
 
+TEST(AVX,sqrt8f)
+{
+  f256 a=set8f(100.0f,25.0f,144.0f,2.0f,100.0f,25.0f,144.0f,2.0f);
+  f256 r=sqrt8f(a);
+  float res[8];
+  store8f(res,r);
+  std::cout<<"result "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<
+             ' '<<res[4]<<' '<<res[5]<<res[6]<<' '<<res[7]<<'\n';
+  ASSERT_FLOAT_EQ(r[0], 10.0f);
+  ASSERT_FLOAT_EQ(r[1], 5.0f);
+  ASSERT_FLOAT_EQ(r[2],12.0f);
+  ASSERT_NEAR(r[3],1.4141f,0.001);
+  ASSERT_FLOAT_EQ(r[4],10.0f);
+  ASSERT_FLOAT_EQ(r[5],5.0f);
+  ASSERT_FLOAT_EQ(r[6],12.0f);
+  ASSERT_NEAR(r[7],1.4141f,0.001);
 }
 
 
