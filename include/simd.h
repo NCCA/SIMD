@@ -12,15 +12,22 @@ using  f256=__m256; // float[8]
 using  i256=__m256i; // int64[4], int32[8], etc
 using  d256=__m256d; // double[4]
 // AVX 512 (may not be supported on all chips)
-using  f512=__m512; // float[16]
-using  i512=__m512i; // int64[8], int32[16], etc 
-using  d512=__m512d; // double[8]
+//using  f512=__m512; // float[16]
+//using  i512=__m512i; // int64[8], int32[16], etc
+//using  d512=__m512d; // double[8]
 
 // set operations
 inline f128 set4f(const float _a, const float _b, const float _c, const float _d) 
 {
   return _mm_setr_ps(_a, _b, _c, _d); 
 }
+
+inline f256 set8f(const float _a, const float _b, const float _c, const float _d,
+                  const float _e, const float _f, const float _g, const float _h)
+{
+  return _mm256_setr_ps(_a, _b, _c, _d,_e,_f,_g,_h);
+}
+
 
 inline i128 set4i(const int32_t _a, const int32_t _b, const int32_t _c, const int32_t _d) 
 {
@@ -37,7 +44,7 @@ inline d128 splat2d(double f) { return _mm_set1_pd(f); }
 inline i128 splat4i(int32_t f) { return _mm_set1_epi32(f); }
 inline i128 splat2i64(const int64_t f) { return _mm_set1_epi64x(f); }
 inline f256 splat8f(const float f) { return _mm256_set1_ps(f); }
-inline d256 splat4d(const double f) { return _mm256_set1_ps(f); }
+//inline d256 splat4d(const double f) { return _mm256_set1_ps(f); }
 inline i256 splat8i(const int32_t f) { return _mm256_set1_epi32(f); }
 inline i256 splat4i64(const int64_t f) { return _mm256_set1_epi64x(f); }
 
@@ -47,6 +54,7 @@ inline f128 loadu4f(const void* const ptr)
 { 
   return _mm_loadu_ps(static_cast<const float*>(ptr));
 }
+
 inline i128 loadu4i(const void* const ptr) 
 { 
   return _mm_loadu_si128(static_cast<const i128*>(ptr));
@@ -83,6 +91,12 @@ inline void store4f(void* const ptr, const f128 reg)
 {
   _mm_store_ps(static_cast<float *>(ptr), reg);
 }
+
+inline void store8f(void* const ptr, const f256 reg)
+{
+  _mm256_store_ps(static_cast<float *>(ptr), reg);
+}
+
 inline void store4i(void* const ptr, const i128 reg)
 {
   _mm_store_si128(static_cast<i128*>(ptr), reg);
@@ -215,7 +229,7 @@ inline i128 cmpgt16i8(const i128 a, const i128 b) { return _mm_cmpgt_epi8(a, b);
 
 inline f256 cmpeq8f(const f256 a, const f256 b)
 {
-  return _mm256_cmpeq_epi64(a,b);
+  return _mm256_cmp_ps(a,b,1);
 }
 
 

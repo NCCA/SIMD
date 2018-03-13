@@ -1,8 +1,8 @@
 TARGET=Quadratic
-CONFIG-=qt
+#CONFIG-=qt core
 SOURCES+=main.cpp
 HEADERS+= ../include/simd.h
-LIBS+=-L/public/devel/lib -L/usr/local/lib -lgtest -lbenchmark -lpthread
+LIBS+=-L/public/devel/lib  -lgtest -lbenchmark -lpthread
 INCLUDEPATH+=/public/devel/include
 INCLUDEPATH+=/usr/local/include
 INCLUDEPATH+=../include/

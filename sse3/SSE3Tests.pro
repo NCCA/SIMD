@@ -1,4 +1,5 @@
 TARGET=SSETest
+QMAKE_CXX=/usr/bin/g++
 CONFIG-=qt
 SOURCES+=main.cpp
 HEADERS+=

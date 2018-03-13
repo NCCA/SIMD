@@ -337,6 +337,26 @@ TEST(SSE4,dot)
 
 }
 
+
+TEST(SSE4,and4f)
+{
+  // result = (a * b) + c
+  f128 a={1.0f,0.0f,1.0f,0.0f};
+  f128 b={1.0f,0.0f,0.0f,1.0f};
+
+
+  f128 res=and4f(a,b);
+  float r[4];
+  _mm_store_ps(r,res);
+
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+  ASSERT_FLOAT_EQ(r[0],1.0f);
+  ASSERT_FLOAT_EQ(r[1],0.0f);
+  ASSERT_FLOAT_EQ(r[2],0.0f);
+  ASSERT_FLOAT_EQ(r[3],0.0f);
+}
+
+
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
