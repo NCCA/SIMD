@@ -4,7 +4,7 @@
 #include <iostream>
 #include <benchmark/benchmark.h>
 
-f256 solve_quadratic(f256 a, f256 b, f256 c, f256 r[2])
+f256 solve_quadratic( f256 a,  f256 b,  f256 c, f256 r[2])
 {
   const f256 half = splat8f(0.5f);
   const f256 four = splat8f(4.0f);
@@ -24,7 +24,7 @@ f256 solve_quadratic(f256 a, f256 b, f256 c, f256 r[2])
 }
 
 
-bool solve_quadratic(float a, float b, float c, float r[2])
+bool solve_quadraticNormal(float a, float b, float c, float r[2])
 {
   if(a == 0) return false;
   float term = b*b-4.0f*a*c;
@@ -52,11 +52,50 @@ static void normalQuadratic(benchmark::State& state)
   float radius=0.8f;
   float c=p.dot(p)-radius*radius;
   float res[2];
-  bool hit=solve_quadratic(a,b,c,&res[0]);
+  bool hit=solve_quadraticNormal(a,b,c,&res[0]);
   //std::cout<<hit<<' '<<res[0]<<' '<<res[1]<<'\n';
  }
 }
 
+
+static void avxQuadratic(benchmark::State& state)
+{
+ for (auto _ : state)
+  {
+  ngl::Vec3 ray(1,-1,0);
+  ray.normalize();
+  // cal the A value as the dotproduct a.a (see lecture notes)
+  float a = ray.dot(ray);
+  ngl::Vec3 spherePos(1,0,0);
+  ngl::Vec3 p=ray-spherePos;
+  float b= ray.dot(p)*2.0f;
+  // C = (Po-Pc).(Po-Pc)-r^2
+  float radius=0.8f;
+  float c=p.dot(p)-radius*radius;
+  f256 res[2];
+  f256 aps=splat8f(a);
+  f256 bps=splat8f(b);
+  f256 cps=splat8f(c);
+  f256 hits=solve_quadratic(aps,bps,cps,res);
+  //bool hit=solve_quadratic(a,b,c,&res[0]);
+  //std::cout<<hit<<' '<<res[0]<<' '<<res[1]<<'\n';
+  float h[8];
+  store8f(h,hits);
+  float c0[8];
+  float c1[8];
+  store8f(c0,res[0]);
+  store8f(c1,res[1]);
+
+
+//  for(size_t i=0; i<8; ++i)
+//  {
+   // std::cout<<"Hit "<<h[i]<<" c0 "<<c0[i]<<" c1 "<<c1[i]<<'\n';
+//  }
+ }
+}
+
+
 BENCHMARK(normalQuadratic);
+BENCHMARK(avxQuadratic);
 
 BENCHMARK_MAIN();

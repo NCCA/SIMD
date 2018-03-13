@@ -8,7 +8,7 @@ INCLUDEPATH+=/usr/local/include
 INCLUDEPATH+=../include/
 macx:CONFIG-=app_bundle
 CONFIG+=c++11
-QMAKE_CXXFLAGS += -mfma -msse4 -m64 -O3 -ffast-math
+QMAKE_CXXFLAGS += -mfma -mavx2 -m64 -O3 -ffast-math
 
 NGLPATH=$$(NGLDIR)
 isEmpty(NGLPATH){ # note brace must be here
