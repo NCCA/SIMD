@@ -3,7 +3,7 @@
 #include <ngl/Vec3.h>
 #include <iostream>
 #include <benchmark/benchmark.h>
-/*
+
 f256 solve_quadratic(f256 a, f256 b, f256 c, f256 r[2])
 {
   const f256 half = splat8f(0.5f);
@@ -22,7 +22,7 @@ f256 solve_quadratic(f256 a, f256 b, f256 c, f256 r[2])
   r[1] = mul8f(f1, a2);
   return and8f(cmpaA, isinvalid);
 }
-*/
+
 
 bool solve_quadratic(float a, float b, float c, float r[2])
 {

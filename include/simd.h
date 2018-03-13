@@ -215,6 +215,10 @@ inline f256 sqrt8f(const f256 a)
   return _mm256_sqrt_ps(a);
 }
 
+inline f128 reciprocal4f(const f128 a)
+{
+  return _mm_rcp_ps(a);
+}
 
 // Note this is already defined as a macro so
 // it can't be turned into a function.
@@ -229,13 +233,25 @@ inline i128 cmpgt16i8(const i128 a, const i128 b) { return _mm_cmpgt_epi8(a, b);
 
 inline f256 cmpeq8f(const f256 a, const f256 b)
 {
-  return _mm256_cmp_ps(a,b,1);
+  return _mm256_cmp_ps(a,b,_CMP_EQ_OQ);
 }
 
+inline f128 max4f(const f128 a, const f128 b)
+{
+  return _mm_max_ps(a,b);
+}
+
+inline f128 min4f(const f128 a, const f128 b)
+{
+  return _mm_min_ps(a,b);
+}
 
 // boolean
 inline f128 and4f(const f128 a, const f128 b) { return _mm_and_ps(a, b); }
 inline f256 and8f(const f256 a, const f256 b) { return _mm256_and_ps(a, b); }
 
-
+inline f256 isnegative(const f256 a)
+{
+  return _mm256_srai_epi32(a,32);
+}
 #endif

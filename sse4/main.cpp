@@ -6,130 +6,97 @@
 #include <cmath>
 #include <gtest/gtest.h>
 
+enum class TestModef  {FLOATEQ,NEAR};
+struct TestResultF
+{
+  TestResultF(float _r) : expected(_r){}
+  TestResultF(float _r, TestModef _mode) : expected(_r),mode(_mode){}
+  float expected;
+  TestModef mode=TestModef::FLOATEQ;
+};
+
+void testAndReport4f(const f128 v, std::initializer_list<TestResultF> testResults)
+{
+  float res[4];
+  store4f(res,v);
+  std::cout<<"result ["<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<"]\n";
+  size_t index=0;
+  for(auto t : testResults)
+  {
+    switch (t.mode)
+    {
+      case TestModef::FLOATEQ :
+        ASSERT_FLOAT_EQ(v[index++],t.expected);
+      break;
+      case TestModef::NEAR :
+        ASSERT_NEAR(v[index++],t.expected,0.001f);
+      break;
+    }
+  }
+
+}
+
+
 
 TEST(SSE4,_mm_loadu_ps)
 {
   float data[]={1.0f, 2.0f, 3.0f, 4.0f};
-  __m128 a=loadu4f(&data[0]);
-  printf("result %f %f %f %f \n",a[0],a[1],a[2],a[3]);
+  f128 a=loadu4f(&data[0]);
   // Note Ordering
-  ASSERT_FLOAT_EQ((a[0]),1.0f);
-  ASSERT_FLOAT_EQ(a[1],2.0f);
-  ASSERT_FLOAT_EQ(a[2],3.0f);
-  ASSERT_FLOAT_EQ(a[3],4.0f);
+  testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
 
 }
 
 TEST(SSE4,_mm_load_ps)
 {
   float data[]={1.0f, 2.0f, 3.0f, 4.0f};
-  __m128 a=load4f(&data[0]);
-  printf("result %f %f %f %f \n",a[0],a[1],a[2],a[3]);
-  // Note Ordering
-  ASSERT_FLOAT_EQ((a[0]),1.0f);
-  ASSERT_FLOAT_EQ(a[1],2.0f);
-  ASSERT_FLOAT_EQ(a[2],3.0f);
-  ASSERT_FLOAT_EQ(a[3],4.0f);
+  f128 a=load4f(&data[0]);
+  testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
+
 
 }
 
 TEST(SSE4,set4f)
 {
-  __m128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
-  // we can access vector elements directly (not recommneded due to alignment issues)
-  printf("result %f %f %f %f \n",a[0],a[1],a[2],a[3]);
-  // Note Ordering
-  ASSERT_FLOAT_EQ((a[0]),1.0f);
-  ASSERT_FLOAT_EQ(a[1],2.0f);
-  ASSERT_FLOAT_EQ(a[2],3.0f);
-  ASSERT_FLOAT_EQ(a[3],4.0f);
-}
-
-TEST(SSE4,set4fCast)
-{
-  __m128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
-  // note we can access the data by re-casting to float
-  // again best not too
-  float *r = reinterpret_cast<float*>(&a);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  // Note order of data (due to the (r)everse function )
-  ASSERT_FLOAT_EQ(r[0],1.0f);
-  ASSERT_FLOAT_EQ(r[1],2.0f);
-  ASSERT_FLOAT_EQ(r[2],3.0f);
-  ASSERT_FLOAT_EQ(r[3],4.0f);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
+  testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
 
 }
+
 
 
 TEST(SSE4,zero4f)
 {
   // _mm_setzero_ps sets all elements to zero
-  __m128 a=zero4f();
-  // get result by using the storeu_ps is prefered
-  float r[4];
-  storeu4f(r,a);
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],0.0f);
-  ASSERT_FLOAT_EQ(r[1],0.0f);
-  ASSERT_FLOAT_EQ(r[2],0.0f);
-  ASSERT_FLOAT_EQ(r[3],0.0f);
+  f128 a=zero4f();
+  testAndReport4f(a,{{0.0f},{0.0f},{0.0f},{0.0f}});
 }
 
 TEST(SSE4,splat4f)
 {
   // _mm_set1_ps sets all elements to value passed (splat!)
-  __m128 a=splat4f(0.9991f);
-  // get result by using the storeu_ps is prefered
-  float r[4];
-  storeu4f(r,a);
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-
-  ASSERT_FLOAT_EQ(r[0],0.9991f);
-  ASSERT_FLOAT_EQ(r[1],0.9991f);
-  ASSERT_FLOAT_EQ(r[2],0.9991f);
-  ASSERT_FLOAT_EQ(r[3],0.9991f);
-
+  f128 a=splat4f(0.9991f);
+  testAndReport4f(a,{{0.9991f},{0.9991f},{0.9991f},{0.9991f}});
 }
-
-
-
-
 
 TEST(SSE4,add4f)
 {
   // load data into data type
-  __m128 a=set4f(5, 6, 7, 8);
-  __m128 b=set4f(1, 2, 3, 4);
+  f128 a=set4f(5, 6, 7, 8);
+  f128 b=set4f(1, 2, 3, 4);
   // execute an add
-  __m128 res=add4f(a, b);
-  // get result by using
-  float r[4];  
-  storeu4f(r,res);
-
-  std::cout<<"add result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],6);
-  ASSERT_FLOAT_EQ(r[1],8);
-  ASSERT_FLOAT_EQ(r[2],10);
-  ASSERT_FLOAT_EQ(r[3],12);
+  f128 res=add4f(a, b);
+  testAndReport4f(res,{{6.0f},{8.0f},{10.0f},{12.0f}});
 }
 
 
 
 TEST(SSE4,sub4f)
 {
-  __m128 a=set4f(5, 6, 7, 8);
-  __m128 b=set4f(1, 2, 3, 4);
-  __m128 res=sub4f(a, b);
-  float r[4];  
-  _mm_store_ps(r,res);
-
-  std::cout<<"sub result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],4);
-  ASSERT_FLOAT_EQ(r[1],4);
-  ASSERT_FLOAT_EQ(r[2],4);
-  ASSERT_FLOAT_EQ(r[3],4);
-
+  f128 a=set4f(5, 6, 7, 8);
+  f128 b=set4f(1, 2, 3, 4);
+  f128 res=sub4f(a, b);
+  testAndReport4f(res,{{4.0f},{4.0f},{4.0f},{4.0f}});
 }
 
 
@@ -137,35 +104,19 @@ TEST(SSE4,sub4f)
 
 TEST(SSE4,mul4f)
 {
-  __m128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
-  __m128 b=splat4f(0.5f);
-  __m128 res=mul4f(a, b);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],0.5f);
-  ASSERT_FLOAT_EQ(r[1],1.0f);
-  ASSERT_FLOAT_EQ(r[2],1.5f);
-  ASSERT_FLOAT_EQ(r[3],2.0f);
-
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 b=splat4f(0.5f);
+  f128 res=mul4f(a, b);
+  testAndReport4f(res,{{0.5f},{1.0f},{1.5f},{2.0f}});
 }
 
 
 TEST(SSE4,div4f)
 {
-  __m128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
-  __m128 b=splat4f(2.0f);
-  __m128 res=div4f(a, b);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],0.5f);
-  ASSERT_FLOAT_EQ(r[1],1.0f);
-  ASSERT_FLOAT_EQ(r[2],1.5f);
-  ASSERT_FLOAT_EQ(r[3],2.0f);
-
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 b=splat4f(2.0f);
+  f128 res=div4f(a, b);
+  testAndReport4f(res,{{0.5f},{1.0f},{1.5f},{2.0f}});
 }
 
 
@@ -201,17 +152,13 @@ TEST(SSE4,length)
 TEST(SSE4,_mm_rcpps_ps)
 {
   // create a 4 float vector
-  __m128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
   // evauate 1/a for each vector component
-  auto r1 = _mm_rcp_ps(a);
-  float r[4];
-  storeu4f(r,r1);
-  // should set all values to inf
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  EXPECT_NEAR(r[0],1.0f/1.0f,0.001);
-  EXPECT_NEAR(r[1],1.0f/2.0f,0.001);
-  EXPECT_NEAR(r[2],1.0f/3.0f,0.001);
-  EXPECT_NEAR(r[3],1.0f/4.0f,0.001);
+  f128 res = reciprocal4f(a);
+  testAndReport4f(res,{{1.0f/1.0f,TestModef::NEAR},
+                       {1.0f/2.0f,TestModef::NEAR},
+                       {1.0f/3.0f,TestModef::NEAR},
+                       {1.0f/4.0f,TestModef::NEAR}});
 
 }
 
@@ -219,15 +166,7 @@ TEST(SSE4,negate)
 {
   f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
   f128 res=negate4f(a);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],-1.0f);
-  ASSERT_FLOAT_EQ(r[1],-9.0f);
-  ASSERT_FLOAT_EQ(r[2],-3.0f);
-  ASSERT_FLOAT_EQ(r[3],-3.0f);
-
+  testAndReport4f(res,{{-1.0f},{-9.0f},{-3.0f},{-3.0f}});
 }
 
 TEST(SSE4,fmad4f)
@@ -238,14 +177,7 @@ TEST(SSE4,fmad4f)
   f128 c={2.0f,2.0f,2.0f,2.0f};
 
   f128 res=fmadd4f(a,b,c);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],2.5f);
-  ASSERT_FLOAT_EQ(r[1],3.0f);
-  ASSERT_FLOAT_EQ(r[2],3.5f);
-  ASSERT_FLOAT_EQ(r[3],4.0f);
+  testAndReport4f(res,{{2.5f},{3.0f},{3.5f},{4.0f}});
 }
 
 TEST(SSE4,fnmad4f)
@@ -256,28 +188,14 @@ TEST(SSE4,fnmad4f)
   f128 c={1.0f,1.0f,1.0f,1.0f};
 
   f128 res=fnmadd4f(a,b,c);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],0.5f);
-  ASSERT_FLOAT_EQ(r[1],0.0f);
-  ASSERT_FLOAT_EQ(r[2],-0.5f);
-  ASSERT_FLOAT_EQ(r[3],-1.0f);
+  testAndReport4f(res,{{0.5f},{0.0f},{-0.5f},{-1.0f}});
 }
 
 TEST(SSE4,sqrt4f)
 {
   f128 a={100.0f,25.0f,144.0f,2.0f};
   f128 res=sqrt4f(a);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],10.0f);
-  ASSERT_FLOAT_EQ(r[1],5.0f);
-  ASSERT_FLOAT_EQ(r[2],12.0f);
-  ASSERT_NEAR(r[3],1.4141f,0.001);
+  testAndReport4f(res,{{10.0f},{5.0f},{12.0f},{1.4141f,TestModef::NEAR}});
 }
 
 TEST(SSE4,_mm_max_ps)
@@ -285,33 +203,17 @@ TEST(SSE4,_mm_max_ps)
   // create a 4 float vector
   f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
   f128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
-  // evauate 1/a for each vector component
-  auto r1 = _mm_max_ps(a,b);
-  float r[4];
-  storeu4f(r,r1);
-  // should set all values to inf
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],2.0f);
-  ASSERT_FLOAT_EQ(r[1],9.0f);
-  ASSERT_FLOAT_EQ(r[2],6.0f);
-  ASSERT_FLOAT_EQ(r[3],4.0f);
+  f128 res = max4f(a,b);
+  testAndReport4f(res,{{2.0f},{9.0f},{6.0f},{4.0f}});
 }
 
 TEST(SSE4,_mm_min_ps)
 {
   // create a 4 float vector
-  __m128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
-  __m128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
-  // evauate 1/a for each vector component
-  auto r1 = _mm_min_ps(a,b);
-  float r[4];
-  storeu4f(r,r1);
-  // should set all values to inf
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],1.0f);
-  ASSERT_FLOAT_EQ(r[1],5.0f);
-  ASSERT_FLOAT_EQ(r[2],3.0f);
-  ASSERT_FLOAT_EQ(r[3],3.0f);
+  f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
+  f128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
+  f128 res=min4f(a,b);
+  testAndReport4f(res,{{1.0f},{5.0f},{3.0f},{3.0f}});
 }
 
 TEST(SSE4,dot)
@@ -343,17 +245,8 @@ TEST(SSE4,and4f)
   // result = (a * b) + c
   f128 a={1.0f,0.0f,1.0f,0.0f};
   f128 b={1.0f,0.0f,0.0f,1.0f};
-
-
   f128 res=and4f(a,b);
-  float r[4];
-  _mm_store_ps(r,res);
-
-  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
-  ASSERT_FLOAT_EQ(r[0],1.0f);
-  ASSERT_FLOAT_EQ(r[1],0.0f);
-  ASSERT_FLOAT_EQ(r[2],0.0f);
-  ASSERT_FLOAT_EQ(r[3],0.0f);
+  testAndReport4f(res,{{1.0f},{0},{0},{0}});
 }
 
 
