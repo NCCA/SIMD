@@ -164,7 +164,6 @@ TEST(AVX,sqrt8f)
 }
 
 
-
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
