@@ -215,12 +215,76 @@ TEST(SSE4,_mm_rcpps_ps)
 
 }
 
+TEST(SSE4,negate)
+{
+  f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
+  f128 res=negate4f(a);
+  float r[4];
+  _mm_store_ps(r,res);
+
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+  ASSERT_FLOAT_EQ(r[0],-1.0f);
+  ASSERT_FLOAT_EQ(r[1],-9.0f);
+  ASSERT_FLOAT_EQ(r[2],-3.0f);
+  ASSERT_FLOAT_EQ(r[3],-3.0f);
+
+}
+
+TEST(SSE4,fmad4f)
+{
+  // result = (a * b) + c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={2.0f,2.0f,2.0f,2.0f};
+
+  f128 res=fmadd4f(a,b,c);
+  float r[4];
+  _mm_store_ps(r,res);
+
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+  ASSERT_FLOAT_EQ(r[0],2.5f);
+  ASSERT_FLOAT_EQ(r[1],3.0f);
+  ASSERT_FLOAT_EQ(r[2],3.5f);
+  ASSERT_FLOAT_EQ(r[3],4.0f);
+}
+
+TEST(SSE4,fnmad4f)
+{
+  // result = -(a * b) - c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={1.0f,1.0f,1.0f,1.0f};
+
+  f128 res=fnmadd4f(a,b,c);
+  float r[4];
+  _mm_store_ps(r,res);
+
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+  ASSERT_FLOAT_EQ(r[0],0.5f);
+  ASSERT_FLOAT_EQ(r[1],0.0f);
+  ASSERT_FLOAT_EQ(r[2],-0.5f);
+  ASSERT_FLOAT_EQ(r[3],-1.0f);
+}
+
+TEST(SSE4,sqrt4f)
+{
+  f128 a={100.0f,25.0f,144.0f,2.0f};
+  f128 res=sqrt4f(a);
+  float r[4];
+  _mm_store_ps(r,res);
+
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+  ASSERT_FLOAT_EQ(r[0],10.0f);
+  ASSERT_FLOAT_EQ(r[1],5.0f);
+  ASSERT_FLOAT_EQ(r[2],12.0f);
+  ASSERT_NEAR(r[3],1.4141f,0.001);
+}
 
 TEST(SSE4,_mm_max_ps)
 {
   // create a 4 float vector
-  __m128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
-  __m128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
+  f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
+  f128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
   // evauate 1/a for each vector component
   auto r1 = _mm_max_ps(a,b);
   float r[4];
@@ -250,6 +314,28 @@ TEST(SSE4,_mm_min_ps)
   ASSERT_FLOAT_EQ(r[3],3.0f);
 }
 
+TEST(SSE4,dot)
+{
+  // create a 4 float vector
+  f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
+  f128 b=set4f(2.0f, 5.0f, 6.0f, 4.0f);
+
+
+  f128 mulRes, shufReg, sumsReg;
+  mulRes = mul4f(a, b);
+  // Calculates the sum of SSE Register - https://stackoverflow.com/a/35270026/195787
+  // duplicates the second and fourth 32-bit data elements
+  // if source is { A0, A1, A2, A3 }, the return value is { A1, A1, A3, A3 }.
+  shufReg = movehdup4f(mulRes);        // Broadcast elements 3,1 to 2,0
+  // add
+  sumsReg = add4f(mulRes, shufReg);
+  shufReg = movehl4f(shufReg, sumsReg); // High Half -> Low Half
+  sumsReg = add1f(sumsReg, shufReg);
+  float dot=convertf32(sumsReg); // Result in the lower part of the SSE Register
+  std::cout<<"result "<<dot<<'\n';
+  ASSERT_FLOAT_EQ(dot,77.0f);
+
+}
 
 int main(int argc, char **argv)
 {
