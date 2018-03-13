@@ -125,6 +125,29 @@ TEST(AVX,fmadd8f)
 }
 
 
+TEST(AVX,fmnadd8f)
+{
+  f256 a={1.0f,2.0f,3.0f,4.0f,5.0,6.0,7.0,8.0};
+  f256 b=splat8f(0.5f);
+  f256 c=splat8f(1.0f);
+  f256 r=fnmadd8f(a,b,c);
+  float res[8];
+  store8f(res,r);
+  std::cout<<"result "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<
+             ' '<<res[4]<<' '<<res[5]<<res[6]<<' '<<res[7]<<'\n';
+  ASSERT_FLOAT_EQ(r[0], 0.5f);
+  ASSERT_FLOAT_EQ(r[1], 0.0f);
+  ASSERT_FLOAT_EQ(r[2],-0.5f);
+  ASSERT_FLOAT_EQ(r[3],-1.0f);
+  ASSERT_FLOAT_EQ(r[4],-1.5f);
+  ASSERT_FLOAT_EQ(r[5],-2.0f);
+  ASSERT_FLOAT_EQ(r[6],-2.5f);
+  ASSERT_FLOAT_EQ(r[7],-3.0f);
+
+}
+
+
+
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
