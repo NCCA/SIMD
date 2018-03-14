@@ -37,32 +37,26 @@ void testAndReport4f(const f128 v, std::initializer_list<TestResultF> testResult
 }
 
 
-
-TEST(SSE4,_mm_loadu_ps)
+TEST(SSE4,loadu4f)
 {
   float data[]={1.0f, 2.0f, 3.0f, 4.0f};
   f128 a=loadu4f(&data[0]);
   // Note Ordering
   testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
-
 }
 
-TEST(SSE4,_mm_load_ps)
+TEST(SSE4,load4f)
 {
   float data[]={1.0f, 2.0f, 3.0f, 4.0f};
   f128 a=load4f(&data[0]);
   testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
-
-
 }
 
 TEST(SSE4,set4f)
 {
   f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
   testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
-
 }
-
 
 
 TEST(SSE4,zero4f)
@@ -100,8 +94,6 @@ TEST(SSE4,sub4f)
 }
 
 
-
-
 TEST(SSE4,mul4f)
 {
   f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
@@ -120,7 +112,7 @@ TEST(SSE4,div4f)
 }
 
 
-TEST(SSE4,_mm_div_psZero)
+TEST(SSE4,divZero)
 {
   // test to see what division by zero does
   f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);

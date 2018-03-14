@@ -14,7 +14,6 @@
 
 
 #include <immintrin.h>
-
 // SSE3/4 types AVX128
 using f128=__m128; // float[4]
 using i128=__m128i; // int64[2], int32[4], etc
@@ -23,11 +22,12 @@ using d128=__m128d; // double[2]
 using  f256=__m256; // float[8]
 using  i256=__m256i; // int64[4], int32[8], etc
 using  d256=__m256d; // double[4]
-// AVX 512 (may not be supported on all chips)
-//using  f512=__m512; // float[16]
-//using  i512=__m512i; // int64[8], int32[16], etc
-//using  d512=__m512d; // double[8]
-
+#ifdef __AVX512F__
+  // AVX 512 (may not be supported on all chips)
+  using  f512=__m512; // float[16]
+  using  i512=__m512i; // int64[8], int32[16], etc
+  using  d512=__m512d; // double[8]
+#endif
 // set operations
 inline f128 set4f(const float _a, const float _b, const float _c, const float _d) 
 {

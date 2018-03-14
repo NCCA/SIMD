@@ -94,6 +94,18 @@ static void avxQuadratic(benchmark::State& state)
  }
 }
 
+class QuadraticNormal  : public ::benchmark::Fixture
+{
+  public:
+    void SetUp(const ::benchmark::State& st)
+    {
+
+    }
+    void TearDown(const ::benchmark::State&)
+    {
+    }
+
+};
 
 BENCHMARK(normalQuadratic);
 BENCHMARK(avxQuadratic);
