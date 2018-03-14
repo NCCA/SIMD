@@ -1,4 +1,4 @@
-// clang++ -std=c++11 -I../include -mfma -mavx2 -mf16c -m64 -O3 -ffast-math dot.cpp -o dot
+// clang++ -std=c++11 -I../include -mavx2 -mfma -mf16c -m64 -O3 -ffast-math dot.cpp -o dot
 
 #include <stdio.h>
 #include <cstdlib>
@@ -12,7 +12,6 @@ int main ()
 Mask layout
 01234567
 abcdefgh
-
 
 tmp0 := (mask4 == 1) ? (a0 * b0) : +0.0 (d)
 tmp1 := (mask5 == 1) ? (a1 * b1) : +0.0 (c)

@@ -181,6 +181,16 @@ inline f128 fmadd4f(const f128 a, const f128 b, const f128 c)
   return _mm_fmadd_ps(a,b,c);
 }
 
+inline f128 fnmsub4f(const f128 a, const f128 b, const f128 c)
+{
+  return _mm_fnmsub_ps(a,b,c);
+}
+
+inline f128 fmsub4f(const f128 a, const f128 b, const f128 c)
+{
+  return _mm_fmsub_ps(a,b,c);
+}
+
 
 inline f256 fnmadd8f(const f256 a, const f256 b, const f256 c)
 {
@@ -291,7 +301,6 @@ template< int8_t mask>
 inline f128 dot4f(const f128 a, const f128 b)
 {
   return _mm_dp_ps(a, b, mask);
-
 }
 
 // comparisons

@@ -154,7 +154,7 @@ TEST(SSE4,dot4f)
 }
 
 
-TEST(SSE4,_mm_rcpps_ps)
+TEST(SSE4,reciprocal4f)
 {
   // create a 4 float vector
   f128 a=set4f(1.0f, 2.0f, 3.0f, 4.0f);
@@ -195,6 +195,30 @@ TEST(SSE4,fnmad4f)
   f128 res=fnmadd4f(a,b,c);
   testAndReport4f(res,{{0.5f},{0.0f},{-0.5f},{-1.0f}});
 }
+
+
+TEST(SSE4,fmsub4f)
+{
+  // result = (a * b) - c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={2.0f,2.0f,2.0f,2.0f};
+
+  f128 res=fmsub4f(a,b,c);
+  testAndReport4f(res,{{-1.5f},{-1.0f},{-0.5f},{0.0f}});
+}
+
+TEST(SSE4,fnmsub4f)
+{
+  // result = -(a * b) - c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={1.0f,1.0f,1.0f,1.0f};
+
+  f128 res=fnmsub4f(a,b,c);
+  testAndReport4f(res,{{-1.5f},{-2.0f},{-2.5f},{-3.0f}});
+}
+
 
 TEST(SSE4,sqrt4f)
 {
