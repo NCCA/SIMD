@@ -314,6 +314,6 @@ inline f256 and8f(const f256 a, const f256 b) { return _mm256_and_ps(a, b); }
 
 inline f256 isnegative(const f256 a)
 {
-  return _mm256_srai_epi32(_mm256_castpd_si256(  a),31);
+  return _mm256_srai_epi32(_mm256_castps_si256(  a),31);
 }
 #endif
