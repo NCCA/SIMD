@@ -4,6 +4,7 @@
 #include "simd.h"
 #include <iostream>
 #include <cmath>
+
 #include <gtest/gtest.h>
 
 enum class TestModef  {FLOATEQ,NEAR};
@@ -126,6 +127,7 @@ TEST(SSE4,divZero)
   ASSERT_TRUE (isinf(r[1]));
   ASSERT_TRUE (isinf(r[2]));
   ASSERT_TRUE (isinf(r[3]));
+  ASSERT_TRUE(fpclassify(r[0])!=FP_NORMAL);
 }
 
 TEST(SSE4,length)
@@ -137,7 +139,18 @@ TEST(SSE4,length)
 
   std::cout<<"length is "<<length<<'\n';
   EXPECT_NEAR(length,3.7416f,0.001f);
+}
 
+
+TEST(SSE4,dot4f)
+{
+  // create a 3 float vector with last component 0
+  f128 a=set4f(1.0f, 2.0f, 3.0f, 0.0f);
+
+  float length=convertf32(sqrt1f(dot4f<117>(a, a )));
+
+  std::cout<<"length is "<<length<<'\n';
+  EXPECT_NEAR(length,3.7416f,0.001f);
 }
 
 

@@ -1,4 +1,4 @@
-// clang++ -std=c++11 -I../include -mfma -msse4 -m64 -O3 -ffast-math dot.cpp -o dot
+// clang++ -std=c++11 -I../include -mfma -mavx2 -mf16c -m64 -O3 -ffast-math dot.cpp -o dot
 
 #include <stdio.h>
 #include <cstdlib>

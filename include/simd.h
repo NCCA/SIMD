@@ -287,6 +287,13 @@ inline f128 dot4f(const f128 a, const f128 b)
   return _mm_dp_ps(a, b, mask);
 }
 
+template< int8_t mask>
+inline f128 dot4f(const f128 a, const f128 b)
+{
+  return _mm_dp_ps(a, b, mask);
+
+}
+
 // comparisons
 inline i128 cmpeq4i(const i128 a, const i128 b) { return _mm_cmpeq_epi32(a, b); }
 inline i128 cmpeq16i8(const i128 a, const i128 b) { return _mm_cmpeq_epi8(a, b); }
