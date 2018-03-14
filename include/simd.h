@@ -1,6 +1,18 @@
 #ifndef SIMD_H_
 #define SIMD_H_
 
+#ifdef _MSC_VER
+// visual C++ only sets AVX2 flag :(
+# ifndef __AVX2__
+#  error Set the compile option:  /arch:AVX2   in project settings -> code generation -> enhanced instruction set
+# endif
+#else
+# if !defined(__AVX2__) || !defined(__FMA__) || !defined(__F16C__)
+#  error add the following to your compiler flags: -mavx2 -mfma -mf16c
+# endif
+#endif
+
+
 #include <immintrin.h>
 
 // SSE3/4 types AVX128
@@ -198,6 +210,31 @@ inline f128 movehl4f(const f128 a, const f128 b)
   return _mm_movehl_ps(a,b);
 }
 
+inline f256 halfToFloat(const i128 a)
+{
+  return _mm256_cvtph_ps(a);
+}
+
+enum class Rounding : int
+{
+  Nearest  = 0b000,
+  Down     = 0b001,
+  Up       = 0b010,
+  Truncate = 0b011,
+  ///    1XX: Use MXCSR.RC for rounding
+  MXCSRNearest  = 0b100,
+  MXCSRDown     = 0b101,
+  MXCSRUp       = 0b110,
+  MXCSRTruncate = 0b111
+};
+
+template<Rounding imm>
+inline i128 floatToHalf(const f256 a)
+{
+  return _mm256_cvtps_ph(a,static_cast<int>(imm));
+}
+
+
 // math
 // sqrt lowest register pass rest
 inline f128 sqrt1f(const f128 a)
@@ -252,6 +289,6 @@ inline f256 and8f(const f256 a, const f256 b) { return _mm256_and_ps(a, b); }
 
 inline f256 isnegative(const f256 a)
 {
-  return _mm256_srai_epi32(a,32);
+  return _mm256_srai_epi32(a,31);
 }
 #endif

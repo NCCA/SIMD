@@ -169,7 +169,16 @@ TEST(AVX,isnegativeMix)
   ASSERT_TRUE(std::isnan(r[5]));
   ASSERT_TRUE(std::isnan(r[6]));
   ASSERT_FLOAT_EQ(r[7],0.0f);
+}
 
+TEST(AVX,Half)
+{
+  f256 a=set8f(1.0f, 2.0f, 3.0f, 4.0f,5.0f,6.0f,7.0f,8.0f);
+  i128 b=floatToHalf<Rounding::Nearest>(a);
+
+  f256 c=halfToFloat(b);
+  testAndReport8f(c,{{1.0f},{2.0f},{3.0f},{4.0f},
+                     {5.0f},{6.0f},{7.0f},{8.0f}});
 
 }
 
