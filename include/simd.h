@@ -257,10 +257,34 @@ inline f128 reciprocal4f(const f128 a)
   return _mm_rcp_ps(a);
 }
 
-// Note this is already defined as a macro so
-// it can't be turned into a function.
-#define dot4f(a,b,mask) _mm_dp_ps(a,b,mask)
+enum class DotMask
+{
+  None = 0,
+  X = 0x1,
+  Y = 0x2,
+  Z = 0x4,
+  W = 0x8,
+  XY = X | Y,
+  XZ = X | Z,
+  XW = X | W,
+  YZ = Y | Z,
+  YW = Y | W,
+  ZW = Z | W,
+  XYZ = X | Y | Z,
+  XYW = X | Y | W,
+  XZW = X | Z | W,
+  YZW = Y | Z | W,
+  XYZW = X | Y | Z | W
+};
 
+
+template<DotMask inmask, DotMask outmask>
+inline f128 dot4f(const f128 a, const f128 b)
+{
+  constexpr uint8_t mask = static_cast<uint8_t>(outmask) | (static_cast<uint8_t>(inmask) << 4);
+
+  return _mm_dp_ps(a, b, mask);
+}
 
 // comparisons
 inline i128 cmpeq4i(const i128 a, const i128 b) { return _mm_cmpeq_epi32(a, b); }

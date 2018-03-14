@@ -141,7 +141,7 @@ TEST(SSE4,length)
   // create a 3 float vector with last component 0
   f128 a=set4f(1.0f, 2.0f, 3.0f, 0.0f);
 
-  float length=convertf32(sqrt1f(dot4f(a, a, 0x71)));
+  float length=convertf32(sqrt1f(dot4f<DotMask::XYZW,DotMask::XYZW>(a, a )));
 
   std::cout<<"length is "<<length<<'\n';
   EXPECT_NEAR(length,3.7416f,0.001f);
