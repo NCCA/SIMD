@@ -14,6 +14,7 @@
 
 
 #include <immintrin.h>
+#include <cstdint>
 // SSE3/4 types AVX128
 using f128=__m128; // float[4]
 using i128=__m128i; // int64[2], int32[4], etc
@@ -313,6 +314,6 @@ inline f256 and8f(const f256 a, const f256 b) { return _mm256_and_ps(a, b); }
 
 inline f256 isnegative(const f256 a)
 {
-  return _mm256_srai_epi32(a,31);
+  return _mm256_srai_epi32(_mm256_castpd_si256(  a),31);
 }
 #endif
