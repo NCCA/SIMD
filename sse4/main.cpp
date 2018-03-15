@@ -127,7 +127,6 @@ TEST(SSE4,divZero)
   ASSERT_TRUE (isinf(r[1]));
   ASSERT_TRUE (isinf(r[2]));
   ASSERT_TRUE (isinf(r[3]));
-  ASSERT_TRUE(fpclassify(r[0])!=FP_NORMAL);
 }
 
 TEST(SSE4,length)
@@ -174,49 +173,19 @@ TEST(SSE4,negate)
   testAndReport4f(res,{{-1.0f},{-9.0f},{-3.0f},{-3.0f}});
 }
 
-TEST(SSE4,fmad4f)
-{
-  // result = (a * b) + c
-  f128 a={1.0f,2.0f,3.0f,4.0f};
-  f128 b={0.5f,0.5f,0.5f,0.5f};
-  f128 c={2.0f,2.0f,2.0f,2.0f};
 
-  f128 res=fmadd4f(a,b,c);
-  testAndReport4f(res,{{2.5f},{3.0f},{3.5f},{4.0f}});
+TEST(SSE4,sqrt1f)
+{
+  f128 a={100.0f,25.0f,144.0f,2.0f};
+  f128 res=sqrt1f(a);
+  testAndReport4f(res,{{10.0f},{25.0f},{144.0f},{2.0}});
 }
 
-TEST(SSE4,fnmad4f)
+TEST(SSE4,rsqrt1f)
 {
-  // result = -(a * b) - c
-  f128 a={1.0f,2.0f,3.0f,4.0f};
-  f128 b={0.5f,0.5f,0.5f,0.5f};
-  f128 c={1.0f,1.0f,1.0f,1.0f};
-
-  f128 res=fnmadd4f(a,b,c);
-  testAndReport4f(res,{{0.5f},{0.0f},{-0.5f},{-1.0f}});
-}
-
-
-TEST(SSE4,fmsub4f)
-{
-  // result = (a * b) - c
-  f128 a={1.0f,2.0f,3.0f,4.0f};
-  f128 b={0.5f,0.5f,0.5f,0.5f};
-  f128 c={2.0f,2.0f,2.0f,2.0f};
-
-  f128 res=fmsub4f(a,b,c);
-  testAndReport4f(res,{{-1.5f},{-1.0f},{-0.5f},{0.0f}});
-}
-
-TEST(SSE4,fnmsub4f)
-{
-  // result = -(a * b) - c
-  f128 a={1.0f,2.0f,3.0f,4.0f};
-  f128 b={0.5f,0.5f,0.5f,0.5f};
-  f128 c={1.0f,1.0f,1.0f,1.0f};
-
-  f128 res=fnmsub4f(a,b,c);
-  testAndReport4f(res,{{-1.5f},{-2.0f},{-2.5f},{-3.0f}});
+  f128 a={100.0f,25.0f,144.0f,2.0f};
+  f128 res=rsqrt1f(a);
+  testAndReport4f(res,{{1.0f/sqrt(100.0f),TestModef::NEAR},{25.0f},{144.0f},{2.0}});
 }
 
 
@@ -227,7 +196,18 @@ TEST(SSE4,sqrt4f)
   testAndReport4f(res,{{10.0f},{5.0f},{12.0f},{1.4141f,TestModef::NEAR}});
 }
 
-TEST(SSE4,_mm_max_ps)
+TEST(SSE4,rsqrt4f)
+{
+  f128 a={100.0f,25.0f,144.0f,2.0f};
+  f128 res=rsqrt4f(a);
+  testAndReport4f(res,{{1.0f/sqrtf(100.0),TestModef::NEAR},
+                       {1.0f/sqrtf(25.0f),TestModef::NEAR},
+                       {1.0f/sqrtf(144.0f),TestModef::NEAR},
+                       {1.0f/sqrtf(2.0f),TestModef::NEAR}});
+}
+
+
+TEST(SSE4,max)
 {
   // create a 4 float vector
   f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
@@ -236,7 +216,7 @@ TEST(SSE4,_mm_max_ps)
   testAndReport4f(res,{{2.0f},{9.0f},{6.0f},{4.0f}});
 }
 
-TEST(SSE4,_mm_min_ps)
+TEST(SSE4,min)
 {
   // create a 4 float vector
   f128 a=set4f(1.0f, 9.0f, 3.0f, 3.0f);
@@ -271,12 +251,236 @@ TEST(SSE4,dot)
 
 TEST(SSE4,and4f)
 {
-  // result = (a * b) + c
   f128 a={1.0f,0.0f,1.0f,0.0f};
   f128 b={1.0f,0.0f,0.0f,1.0f};
   f128 res=and4f(a,b);
   testAndReport4f(res,{{1.0f},{0},{0},{0}});
 }
+
+TEST(SSE4,andnot4f)
+{
+  f128 a={1.0f,0.0f,1.0f,0.0f};
+  f128 b={1.0f,0.0f,0.0f,1.0f};
+  f128 res=andnot4f(a,b);
+  testAndReport4f(res,{{0},{0},{0},{1.0f}});
+}
+
+TEST(SSE4,or4f)
+{
+  f128 a={1.0f,0.0f,1.0f,0.0f};
+  f128 b={1.0f,0.0f,0.0f,1.0f};
+  f128 res=or4f(a,b);
+  testAndReport4f(res,{{1.0f},{0},{1.0f},{1.0f}});
+}
+
+TEST(SSE4,xor4f)
+{
+  f128 a={1.0f,0.0f,1.0f,0.0f};
+  f128 b={1.0f,0.0f,0.0f,1.0f};
+  f128 res=xor4f(a,b);
+  testAndReport4f(res,{{0},{0},{1.0f},{1.0f}});
+}
+
+TEST(SSE4,cmpeq4f)
+{
+  f128 a={1.0f,5.0f,99.2f,2.2f};
+  f128 b={1.0f,5.0f,99.2f,0.2f};
+  f128 res=cmpeq4f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_TRUE (isnan(r[1]));
+  ASSERT_TRUE (isnan(r[2]));
+  ASSERT_FLOAT_EQ(r[3],0.0f);
+
+}
+
+TEST(SSE4,cmpeq1f)
+{
+  f128 a={1.0f,5.0f,99.2f,2.2f};
+  f128 b={1.0f,5.0f,99.2f,0.2f};
+  f128 res=cmpeq1f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],5.0f);
+  ASSERT_FLOAT_EQ(r[2],99.2f);
+  ASSERT_FLOAT_EQ(r[3],2.2f);
+}
+
+
+TEST(SSE4,cmpneq4f)
+{
+  f128 a={1.0f,5.0f,99.2f,2.2f};
+  f128 b={1.0f,5.0f,99.2f,0.2f};
+  f128 res=cmpneq4f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_FLOAT_EQ(r[0],0.0f);
+  ASSERT_FLOAT_EQ(r[1],0.0f);
+  ASSERT_FLOAT_EQ(r[2],0.0f);
+  ASSERT_TRUE (isnan(r[3]));
+
+}
+
+TEST(SSE4,cmpneq1f)
+{
+  f128 a={0.0f,5.0f,99.2f,2.2f};
+  f128 b={1.0f,5.0f,99.2f,0.2f};
+  f128 res=cmpneq1f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],5.0f);
+  ASSERT_FLOAT_EQ(r[2],99.2f);
+  ASSERT_FLOAT_EQ(r[3],2.2f);
+}
+
+
+TEST(SSE4,cmplt4f)
+{
+  f128 a={1.0f,5.0f,99.2f,2.2f};
+  f128 b={2.0f,5.0f,99.2f,4.2f};
+  f128 res=cmplt4f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],0);
+  ASSERT_FLOAT_EQ(r[2],0);
+  ASSERT_TRUE (isnan(r[3]));
+
+}
+
+TEST(SSE4,cmplt1f)
+{
+  f128 a={0.01f,5.0f,99.2f,0.2f};
+  f128 b={1.0f,5.0f,99.2f,1.2f};
+  f128 res=cmplt1f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],5.0f);
+  ASSERT_FLOAT_EQ(r[2],99.2f);
+  ASSERT_FLOAT_EQ(r[3],0.2f);
+}
+
+TEST(SSE4,cmplteq4f)
+{
+  f128 a={1.0f,5.0f,99.2f,2.2f};
+  f128 b={2.0f,5.0f,99.2f,4.2f};
+  f128 res=cmplteq4f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_TRUE (isnan(r[1]));
+  ASSERT_TRUE (isnan(r[2]));
+  ASSERT_TRUE (isnan(r[3]));
+
+}
+
+TEST(SSE4,cmplteq1f)
+{
+  f128 a={0.01f,5.0f,99.2f,0.2f};
+  f128 b={1.0f,5.0f,99.2f,1.2f};
+  f128 res=cmplteq1f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],5.0f);
+  ASSERT_FLOAT_EQ(r[2],99.2f);
+  ASSERT_FLOAT_EQ(r[3],0.2f);
+}
+
+TEST(SSE4,cmpgt4f)
+{
+  f128 a={2.0f,5.0f,99.2f,9.2f};
+  f128 b={1.0f,5.0f,99.2f,4.2f};
+  f128 res=cmpgt4f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],0);
+  ASSERT_FLOAT_EQ(r[2],0);
+  ASSERT_TRUE (isnan(r[3]));
+
+}
+
+TEST(SSE4,cmpgt1f)
+{
+  f128 a={8.01f,5.0f,99.2f,0.2f};
+  f128 b={1.0f,5.0f,99.2f,1.2f};
+  f128 res=cmpgt1f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],5.0f);
+  ASSERT_FLOAT_EQ(r[2],99.2f);
+  ASSERT_FLOAT_EQ(r[3],0.2f);
+}
+
+TEST(SSE4,cmpgteq4f)
+{
+  f128 a={1.0f,5.0f,99.2f,2.2f};
+  f128 b={2.0f,5.0f,99.2f,4.2f};
+  f128 res=cmpgteq4f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_FLOAT_EQ(r[0],0);
+  ASSERT_TRUE (isnan(r[1]));
+  ASSERT_TRUE (isnan(r[2]));
+  ASSERT_FLOAT_EQ(r[3],0);
+
+}
+
+TEST(SSE4,cmpgteq1f)
+{
+  f128 a={8.01f,5.0f,99.2f,0.2f};
+  f128 b={1.0f,5.0f,99.2f,1.2f};
+  f128 res=cmpgteq1f(a,b);
+  float r[4];
+  store4f(r,res);
+  // should set all values to inf
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+
+  ASSERT_TRUE (isnan(r[0]));
+  ASSERT_FLOAT_EQ(r[1],5.0f);
+  ASSERT_FLOAT_EQ(r[2],99.2f);
+  ASSERT_FLOAT_EQ(r[3],0.2f);
+}
+
 
 
 int main(int argc, char **argv)

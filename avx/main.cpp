@@ -34,12 +34,31 @@ void testAndReport8f(const f256 v, std::initializer_list<TestResultF> testResult
 
 }
 
+void testAndReport4f(const f128 v, std::initializer_list<TestResultF> testResults)
+{
+  float res[4];
+  store4f(res,v);
+  std::cout<<"result ["<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<"]\n";
+  size_t index=0;
+  for(auto t : testResults)
+  {
+    switch (t.mode)
+    {
+      case TestModef::FLOATEQ :
+        ASSERT_FLOAT_EQ(v[index++],t.expected);
+      break;
+      case TestModef::NEAR :
+        ASSERT_NEAR(v[index++],t.expected,0.001f);
+      break;
+    }
+  }
+
+}
 
 TEST(AVX,set8f)
 {
   f256 a=set8f(1.0f, 2.0f, 3.0f, 4.0f,5.0f,6.0f,7.0f,8.0f);
   testAndReport8f(a,{{1.0f},{2.0f},{3.0f},{4.0f},{5.0f},{6.0f},{7.0f},{8.0f}});
-
 }
 
 
@@ -82,6 +101,52 @@ TEST(AVX,negate8f)
 }
 
 
+TEST(AVX,fmad4f)
+{
+  // result = (a * b) + c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={2.0f,2.0f,2.0f,2.0f};
+
+  f128 res=fmadd4f(a,b,c);
+  testAndReport4f(res,{{2.5f},{3.0f},{3.5f},{4.0f}});
+}
+
+TEST(AVX,fnmad4f)
+{
+  // result = -(a * b) - c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={1.0f,1.0f,1.0f,1.0f};
+
+  f128 res=fnmadd4f(a,b,c);
+  testAndReport4f(res,{{0.5f},{0.0f},{-0.5f},{-1.0f}});
+}
+
+
+TEST(AVX,fmsub4f)
+{
+  // result = (a * b) - c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={2.0f,2.0f,2.0f,2.0f};
+
+  f128 res=fmsub4f(a,b,c);
+  testAndReport4f(res,{{-1.5f},{-1.0f},{-0.5f},{0.0f}});
+}
+
+TEST(AVX,fnmsub4f)
+{
+  // result = -(a * b) - c
+  f128 a={1.0f,2.0f,3.0f,4.0f};
+  f128 b={0.5f,0.5f,0.5f,0.5f};
+  f128 c={1.0f,1.0f,1.0f,1.0f};
+
+  f128 res=fnmsub4f(a,b,c);
+  testAndReport4f(res,{{-1.5f},{-2.0f},{-2.5f},{-3.0f}});
+}
+
+
 TEST(AVX,fmadd8f)
 {
   f256 a={1.0f,2.0f,3.0f,4.0f,5.0,6.0,7.0,8.0};
@@ -102,6 +167,29 @@ TEST(AVX,fmnadd8f)
   testAndReport8f(r,{{0.5f},{0.0f},{-0.5f},{-1.0f},
                      {-1.5f},{-2.0f},{-2.5f},{-3.0f}});
 }
+
+
+TEST(AVX,fmsub8f)
+{
+  f256 a={1.0f,2.0f,3.0f,4.0f,5.0,6.0,7.0,8.0};
+  f256 b=splat8f(0.5f);
+  f256 c=splat8f(2.0f);
+  f256 r=fmsub8f(a,b,c);
+  testAndReport8f(r,{{-1.5f},{-1.0f},{-0.5f},{0.0f},
+                     {0.5f},{1.0f},{1.5f},{2.0f}});
+}
+
+
+TEST(AVX,fmnsub8f)
+{
+  f256 a={1.0f,2.0f,3.0f,4.0f,5.0,6.0,7.0,8.0};
+  f256 b=splat8f(0.5f);
+  f256 c=splat8f(1.0f);
+  f256 r=fnmsub8f(a,b,c);
+  testAndReport8f(r,{{-1.5f},{-2.0f},{-2.5f},{-3.0f},
+                     {-3.5f},{-4.0f},{-4.5f},{-5.0f}});
+}
+
 
 TEST(AVX,sqrt8f)
 {

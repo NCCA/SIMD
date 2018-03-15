@@ -1,4 +1,4 @@
-TARGET=SSE4Test
+TARGET=AVX4Testss
 QMAKE_CXX=/usr/bin/g++
 CONFIG-=qt
 SOURCES+=main.cpp

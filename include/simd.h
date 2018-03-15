@@ -202,6 +202,16 @@ inline f256 fmadd8f(const f256 a, const f256 b, const f256 c)
   return _mm256_fmadd_ps(a,b,c);
 }
 
+inline f256 fnmsub8f(const f256 a, const f256 b, const f256 c)
+{
+  return _mm256_fnmsub_ps(a,b,c);
+}
+
+inline f256 fmsub8f(const f256 a, const f256 b, const f256 c)
+{
+  return _mm256_fmsub_ps(a,b,c);
+}
+
 
 // conversion
 
@@ -253,9 +263,20 @@ inline f128 sqrt1f(const f128 a)
   return _mm_sqrt_ss(a);
 }
 
+// 1/sqrt lowest register pass rest
+inline f128 rsqrt1f(const f128 a)
+{
+  return _mm_rsqrt_ss(a);
+}
+
 inline f128 sqrt4f(const f128 a)
 {
   return _mm_sqrt_ps(a);
+}
+
+inline f128 rsqrt4f(const f128 a)
+{
+  return _mm_rsqrt_ps(a);
 }
 
 inline f256 sqrt8f(const f256 a)
@@ -309,10 +330,23 @@ inline i128 cmpeq16i8(const i128 a, const i128 b) { return _mm_cmpeq_epi8(a, b);
 inline i128 cmplt16i8(const i128 a, const i128 b) { return _mm_cmplt_epi8(a, b); }
 inline i128 cmpgt16i8(const i128 a, const i128 b) { return _mm_cmpgt_epi8(a, b); }
 
-inline f256 cmpeq8f(const f256 a, const f256 b)
-{
-  return _mm256_cmp_ps(a,b,_CMP_EQ_OQ);
-}
+inline f128 cmpeq4f(const f128 a, f128 b){ return _mm_cmpeq_ps(a,b);}
+inline f128 cmpeq1f(const f128 a, f128 b){ return _mm_cmpeq_ss(a,b);}
+inline f128 cmpneq4f(const f128 a, f128 b){ return _mm_cmpneq_ps(a,b);}
+inline f128 cmpneq1f(const f128 a, f128 b){ return _mm_cmpneq_ss(a,b);}
+
+inline f128 cmplt4f(const f128 a, f128 b){ return _mm_cmplt_ps(a,b);}
+inline f128 cmplt1f(const f128 a, f128 b){ return _mm_cmplt_ss(a,b);}
+inline f128 cmplteq4f(const f128 a, f128 b){ return _mm_cmple_ps(a,b);}
+inline f128 cmplteq1f(const f128 a, f128 b){ return _mm_cmple_ss(a,b);}
+
+inline f128 cmpgt4f(const f128 a, f128 b){ return _mm_cmpgt_ps(a,b);}
+inline f128 cmpgt1f(const f128 a, f128 b){ return _mm_cmpgt_ss(a,b);}
+inline f128 cmpgteq4f(const f128 a, f128 b){ return _mm_cmpge_ps(a,b);}
+inline f128 cmpgteq1f(const f128 a, f128 b){ return _mm_cmpge_ss(a,b);}
+// todo add in the not versions of above at some stage
+
+inline f256 cmpeq8f(const f256 a, const f256 b){  return _mm256_cmp_ps(a,b,_CMP_EQ_OQ);}
 
 inline f128 max4f(const f128 a, const f128 b)
 {
@@ -325,8 +359,15 @@ inline f128 min4f(const f128 a, const f128 b)
 }
 
 // boolean
-inline f128 and4f(const f128 a, const f128 b) { return _mm_and_ps(a, b); }
+inline f128 and4f(const f128 a, const f128 b) { return _mm_and_ps(a,b); }
+inline f128 andnot4f(const f128 a, const f128 b) { return _mm_andnot_ps(a,b); }
+inline f128 or4f(const f128 a, const f128 b) { return _mm_or_ps(a,b); }
+inline f128 xor4f(const f128 a, const f128 b) { return _mm_xor_ps(a,b); }
+
 inline f256 and8f(const f256 a, const f256 b) { return _mm256_and_ps(a, b); }
+inline f256 andnot8f(const f256 a, const f256 b) { return _mm256_andnot_ps(a, b); }
+inline f256 or8f(const f256 a, const f256 b) { return _mm256_or_ps(a, b); }
+inline f256 xor8f(const f256 a, const f256 b) { return _mm256_xor_ps(a, b); }
 
 inline f256 isnegative(const f256 a)
 {
