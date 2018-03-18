@@ -46,7 +46,14 @@ inline i128 set4i(const int32_t _a, const int32_t _b, const int32_t _c, const in
 {
   return _mm_setr_epi32(_a, _b, _c, _d); 
 }
- 
+
+inline i256 set8i(const int32_t _a, const int32_t _b, const int32_t _c, const int32_t _d,
+                  const int32_t _e, const int32_t _f, const int32_t _g, const int32_t _h)
+{
+  return _mm256_setr_epi32(_a, _b, _c, _d,_e,_f,_g,_h);
+}
+
+
 inline d128 set2d(const double _a, const double _b) 
 {
   return _mm_setr_pd(_a, _b); 
@@ -57,7 +64,7 @@ inline d128 splat2d(double f) { return _mm_set1_pd(f); }
 inline i128 splat4i(int32_t f) { return _mm_set1_epi32(f); }
 inline i128 splat2i64(const int64_t f) { return _mm_set1_epi64x(f); }
 inline f256 splat8f(const float f) { return _mm256_set1_ps(f); }
-//inline d256 splat4d(const double f) { return _mm256_set1_ps(f); }
+inline d256 splat4d(const double f) { return _mm256_set1_pd(f); }
 inline i256 splat8i(const int32_t f) { return _mm256_set1_epi32(f); }
 inline i256 splat4i64(const int64_t f) { return _mm256_set1_epi64x(f); }
 
@@ -81,6 +88,13 @@ inline f128 load4f(const void* const ptr)
 { 
   return _mm_load_ps(static_cast<const float*>(ptr));
 }
+
+inline f256 load8f(const void* const ptr)
+{
+  return _mm256_load_ps(static_cast<const float*>(ptr));
+}
+
+
 inline i128 load4i(const void* const ptr) 
 { 
   return _mm_load_si128(static_cast<const i128*>(ptr));
@@ -369,13 +383,26 @@ inline f256 andnot8f(const f256 a, const f256 b) { return _mm256_andnot_ps(a, b)
 inline f256 or8f(const f256 a, const f256 b) { return _mm256_or_ps(a, b); }
 inline f256 xor8f(const f256 a, const f256 b) { return _mm256_xor_ps(a, b); }
 
+// packing
+
+// return [a0, b0, a2, b2, a4, b4, a6, b6]
+inline f256 unpacklo8f(f256 a, f256 b) { return _mm256_unpacklo_ps(a, b); }
+// return [a1, b1, a3, b3, a5, b5, a7, b7]
+inline f256 unpackhi8f(f256 a, f256 b) { return _mm256_unpackhi_ps(a, b); }
+inline f256 permute8f(f256 in, i256 order){ return _mm256_permutevar8x32_ps(in, order); }
+
+
+
 inline f256 isnegative(const f256 a)
 {
-#ifdef __APPLE__
-   return _mm256_srai_epi32(a,31);
-#else
+  #ifdef __APPLE__
+     return _mm256_srai_epi32(a,31);
+  #else
   // have to have loads of casts for linux
-  return _mm256_castsi256_ps(  _mm256_srai_epi32(_mm256_castps_si256(  a),31));
-#endif
+    return _mm256_castsi256_ps(  _mm256_srai_epi32(_mm256_castps_si256(  a),31));
+  #endif
 }
+
+
+
 #endif

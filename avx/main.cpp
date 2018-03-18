@@ -61,6 +61,13 @@ TEST(AVX,set8f)
   testAndReport8f(a,{{1.0f},{2.0f},{3.0f},{4.0f},{5.0f},{6.0f},{7.0f},{8.0f}});
 }
 
+TEST(AVX,load8f)
+{
+  float data[]={1.0f, 2.0f, 3.0f, 4.0f,5.0f,6.0f,7.0f,8.0f};
+  f256 a=load8f(data);
+  testAndReport8f(a,{{1.0f},{2.0f},{3.0f},{4.0f},{5.0f},{6.0f},{7.0f},{8.0f}});
+}
+
 
 TEST(AVX,add8f)
 {
@@ -269,6 +276,37 @@ TEST(AVX,Half)
                      {5.0f},{6.0f},{7.0f},{8.0f}});
 
 }
+
+TEST(AVX,unpacklo)
+{
+  f256 a=set8f(1.0f, 2.0f, 3.0f, 4.0f,5.0f,6.0f,7.0f,8.0f);
+  f256 b=set8f(9.0f, 10.0f, 11.0f, 12.0f,13.0f,14.0f,15.0f,16.0f);
+
+  f256 r=unpacklo8f(a,b);
+  testAndReport8f(r,{{1.0f},{9.0f},{2.0f},{10.0f},
+                     {5.0f},{13.0f},{6.0f},{14.0f}});
+}
+
+TEST(AVX,unpackhi8f)
+{
+  f256 a=set8f(1.0f, 2.0f, 3.0f, 4.0f,5.0f,6.0f,7.0f,8.0f);
+  f256 b=set8f(9.0f, 10.0f, 11.0f, 12.0f,13.0f,14.0f,15.0f,16.0f);
+
+  f256 r=unpackhi8f(a,b);
+  testAndReport8f(r,{{3.0f},{11.0f},{4.0f},{12.0f},
+                     {7.0f},{15.0f},{8.0f},{16.0f}});
+}
+
+TEST(AVX,permute)
+{
+  f256 a=set8f(1.0f, 2.0f, 3.0f, 4.0f,5.0f,6.0f,7.0f,8.0f);
+  i256 b=set8i(7,6,5,4,3,2,1,0);
+
+  f256 r=permute8f(a,b);
+  testAndReport8f(r,{{8.0f},{7.0f},{6.0f},{5.0f},
+                     {4.0f},{3.0f},{2.0f},{1.0f}});
+}
+
 
 int main(int argc, char **argv)
 {
