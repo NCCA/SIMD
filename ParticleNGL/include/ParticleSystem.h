@@ -17,6 +17,7 @@ class ParticleSystem
     void setParticleDefaults(size_t particleIndex);
     inline bool isAlive() const    { return (m_numAlive > 0); }
     inline size_t getNumAlive() const { return m_numAlive;       }
+    void updatePosition(float _dx, float _dy, float _dz);
 
 
 

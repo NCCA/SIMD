@@ -399,7 +399,24 @@ inline f256 unpacklo8f(f256 a, f256 b) { return _mm256_unpacklo_ps(a, b); }
 // return [a1, b1, a3, b3, a5, b5, a7, b7]
 inline f256 unpackhi8f(f256 a, f256 b) { return _mm256_unpackhi_ps(a, b); }
 inline f256 permute8f(f256 in, i256 order){ return _mm256_permutevar8x32_ps(in, order); }
+inline f128 unpackhi4f(f128 a, f128 b) { return _mm_unpackhi_ps(a, b); }
+inline f128 unpacklo4f(f128 a, f128 b) { return _mm_unpacklo_ps(a, b); }
 
+#define shuffle4f(a, b, W, Z, Y, X) _mm_shuffle_ps(a, b, _MM_SHUFFLE(W, Z, Y, X))
+
+
+inline f128 cast4f(const d128 reg) { return _mm_castpd_ps(reg); }
+inline f128 cast4f(const i128 reg) { return _mm_castsi128_ps(reg); }
+inline i128 cast4i(const d128 reg) { return _mm_castpd_si128(reg); }
+inline i128 cast4i(const f128 reg) { return _mm_castps_si128(reg); }
+inline d128 cast2d(const f128 reg) { return _mm_castps_pd(reg); }
+inline d128 cast2d(const i128 reg) { return _mm_castsi128_pd(reg); }
+
+
+inline int32_t movemask16i8(const i128 reg) { return _mm_movemask_epi8(reg); }
+inline int32_t movemask4i(const i128 reg) { return _mm_movemask_ps(cast4f(reg)); }
+inline int32_t movemask4f(const f128 reg) { return _mm_movemask_ps(reg); }
+inline int32_t movemask2d(const d128 reg) { return _mm_movemask_pd(reg); }
 
 
 inline f256 isnegative(const f256 a)

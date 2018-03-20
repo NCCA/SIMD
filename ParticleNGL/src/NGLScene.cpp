@@ -49,8 +49,9 @@ void NGLScene::initializeGL()
   shader->use(ngl::nglColourShader);
   shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
 
-  m_particle.reset(new ParticleSystem(16000*16,{0,0,0}));
+  m_particle.reset(new ParticleSystem(/*16000*64*/1000000,{-1,0,0}));
   startTimer(10);
+  ngl::VAOPrimitives::instance()->createLineGrid("grid",20,20,100);
 }
 
 
@@ -96,9 +97,9 @@ void NGLScene::paintGL()
 
   // draw
   loadMatricesToShader();
-  glPointSize(4.0);
+  //glPointSize(4.0);
   m_particle->render();
-  //ngl::VAOPrimitives::instance()->draw("teapot");
+  ngl::VAOPrimitives::instance()->draw("grid");
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -136,6 +137,14 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
       m_win.spinYFace=0;
       m_modelPos.set(ngl::Vec3::zero());
     break;
+
+    case Qt::Key_Left : m_particle->updatePosition(-0.1f,0,0); break;
+    case Qt::Key_Right : m_particle->updatePosition(0.1f,0,0); break;
+    case Qt::Key_Up : m_particle->updatePosition(0,0.1f,0); break;
+    case Qt::Key_Down : m_particle->updatePosition(0,-0.1f,0); break;
+    case Qt::Key_BraceLeft : m_particle->updatePosition(0,0.0,0.1f); break;
+    case Qt::Key_BraceRight : m_particle->updatePosition(0,0,-0.1f); break;
+
     default:
       break;
   }
@@ -145,6 +154,6 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
 
 void NGLScene::timerEvent(QTimerEvent *)
 {
-  m_particle->update(0.1f);
+  m_particle->update(0.01f);
   update();
 }

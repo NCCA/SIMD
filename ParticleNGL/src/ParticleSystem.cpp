@@ -4,6 +4,7 @@
 #include <ngl/VAOFactory.h>
 #include <ngl/SimpleVAO.h>
 #include <ngl/NGLStream.h>
+#include <ngl/Random.h>
 #include <vector>
 
 ParticleSystem::ParticleSystem(size_t _numParticles,ngl::Vec3 _pos)
@@ -42,13 +43,16 @@ void ParticleSystem::setDefaults()
   size_t i;
   size_t remaining_particles = m_numParticles % 4;
   ALIGNED(16) float rnd[4];
-  const f128 ZERO = zero4f();
+//  const f128 ZERO = set4f(m_pos.m_x,m_pos.m_y,m_pos.z);///zero4f();
+  const f128 startX=splat4f(m_pos.m_x);
+  const f128 startY=splat4f(m_pos.m_y);
+  const f128 startZ=splat4f(m_pos.m_z);
 
   for (i = 0; i < m_numParticles - remaining_particles; i+=4)
   {
-    store4f(&m_particles->m_x[i], ZERO);
-    store4f(&m_particles->m_y[i], ZERO);
-    store4f(&m_particles->m_z[i], ZERO);
+    store4f(&m_particles->m_x[i], startX);
+    store4f(&m_particles->m_y[i], startY);
+    store4f(&m_particles->m_z[i], startZ);
 
     rnd[0] = (float)rand() / (float)RAND_MAX * random_dir();
     rnd[1] = (float)rand() / (float)RAND_MAX * random_dir();
@@ -60,7 +64,7 @@ void ParticleSystem::setDefaults()
     rnd[1] = (float)rand() / (float)RAND_MAX * random_dir();
     rnd[2] = (float)rand() / (float)RAND_MAX * random_dir();
     rnd[3] = (float)rand() / (float)RAND_MAX * random_dir();
-    store4f(&m_particles->m_vz[i], _mm_load_ps(&rnd[0]));
+    store4f(&m_particles->m_vz[i], load4f(&rnd[0]));
 
     store4f(&m_particles->m_ax[i],splat4f((float)rand() / (float)RAND_MAX));
     store4f(&m_particles->m_ay[i],splat4f(-1.0f * (float)rand() / (float)RAND_MAX));
@@ -81,9 +85,9 @@ void ParticleSystem::setDefaults()
   {
     i -= (4 - remaining_particles);
 
-    store4f(&m_particles->m_x[i], ZERO);
-    store4f(&m_particles->m_y[i], ZERO);
-    store4f(&m_particles->m_z[i], ZERO);
+    store4f(&m_particles->m_x[i], startX);
+    store4f(&m_particles->m_y[i], startY);
+    store4f(&m_particles->m_z[i], startZ);
 
     rnd[0] = (float)rand() / (float)RAND_MAX * random_dir();
     rnd[1] = (float)rand() / (float)RAND_MAX * random_dir();
@@ -129,10 +133,13 @@ void ParticleSystem::update(float _elapsed)
   f128 gravity    = splat4f(s_gravity * _elapsed);
   const f128 ZERO = zero4f();
 
+
   for (size_t i = 0; i < m_numParticles; i+=4)
   {
     // velocity = velocity + (time * acceleration)
-    vel_x = add4f(load4f(&m_particles->m_vx[i]), mul4f(frame_time, load4f(&m_particles->m_ax[i])));
+    //vel_x = add4f(load4f(&m_particles->m_vx[i]), mul4f(frame_time, load4f(&m_particles->m_ax[i])));
+    vel_x=fmadd4f(frame_time,load4f(&m_particles->m_ax[i]),load4f(&m_particles->m_vx[i]));
+
     vel_y = add4f(load4f(&m_particles->m_vy[i]), mul4f(frame_time, load4f(&m_particles->m_ay[i])));
     vel_z = add4f(load4f(&m_particles->m_vz[i]), mul4f(frame_time, load4f(&m_particles->m_az[i])));
 
@@ -153,7 +160,7 @@ void ParticleSystem::update(float _elapsed)
 
     if (s_alwaysAlive)
     {
-      switch (_mm_movemask_ps(_mm_cmple_ps(_mm_load_ps(&m_particles->m_energy[i]), ZERO)))
+      switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
       {
       case 0: // f f f f
         // do nothing; all 4 particles are alive
@@ -245,7 +252,7 @@ void ParticleSystem::update(float _elapsed)
     }
     else // !mInfo.alwaysAlive == true
     {
-      switch (_mm_movemask_ps(_mm_cmple_ps(_mm_load_ps(&m_particles->m_energy[i]), ZERO)))
+      switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
       {
       case 0: // f f f f
         // do nothing; all 4 particles are alive
@@ -359,19 +366,20 @@ void ParticleSystem::update(float _elapsed)
 
 void ParticleSystem::setParticleDefaults(size_t particleIndex)
 {
-  m_particles->m_x[particleIndex]       = 0.0f;
-  m_particles->m_y[particleIndex]       = 0.0f;
-  m_particles->m_z[particleIndex]       = 0.0f;
-
-  m_particles->m_vx[particleIndex]      = (float)rand() / (float)RAND_MAX * random_dir();
-  m_particles->m_vy[particleIndex]      = (float)rand() / (float)RAND_MAX * 6.0f + 4.0f;
-  m_particles->m_vz[particleIndex]      = (float)rand() / (float)RAND_MAX * random_dir();
+  ngl::Random *rng=ngl::Random::instance();
+  m_particles->m_x[particleIndex]       = m_pos.m_x;
+  m_particles->m_y[particleIndex]       = m_pos.m_y;
+  m_particles->m_z[particleIndex]       = m_pos.m_z;
+  ngl::Vec3 dir=rng->getRandomNormalizedVec3();
+  m_particles->m_vx[particleIndex]      = dir.m_x;
+  m_particles->m_vy[particleIndex]      = rng->randomPositiveNumber(1.0f) * 6.0f + 4.0f;
+  m_particles->m_vz[particleIndex]      = dir.m_y;
 
   m_particles->m_ax[particleIndex]      = 0;//(float)rand() / (float)RAND_MAX;
   m_particles->m_ay[particleIndex]      = -1.0f;// * (float)rand() / (float)RAND_MAX;
   m_particles->m_az[particleIndex]      = 0;//(float)rand() / (float)RAND_MAX;
 
-  m_particles->m_energy[particleIndex]  = (float)rand() / (float)RAND_MAX * 3.0f;
+  m_particles->m_energy[particleIndex]  = rng->randomPositiveNumber(1.0f) * 3.0f;
 
   m_particles->m_alive[particleIndex]   = true;
 }
@@ -396,15 +404,15 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
      xmm2 = load4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
      xmm3 = splat4f(1.0f);                                   // xmm3:   1.0     1.0     1.0     1.0
 
-     xmm4 = _mm_unpacklo_ps(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
-     xmm6 = _mm_unpackhi_ps(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
-     xmm5 = _mm_unpacklo_ps(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
-     xmm7 = _mm_unpackhi_ps(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
+     xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
+     xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
+     xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
+     xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
 
-     xmm0 = _mm_shuffle_ps(xmm4, xmm5, _MM_SHUFFLE(1, 0, 1, 0)); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
-     xmm1 = _mm_shuffle_ps(xmm4, xmm5, _MM_SHUFFLE(3, 2, 3, 2)); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
-     xmm2 = _mm_shuffle_ps(xmm6, xmm7, _MM_SHUFFLE(1, 0, 1, 0)); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
-     xmm3 = _mm_shuffle_ps(xmm6, xmm7, _MM_SHUFFLE(3, 2, 3, 2)); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
+     xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
+     xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
+     xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
+     xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
 
      if (m_particles->m_alive[i])
      {
@@ -475,15 +483,15 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
      xmm2 = load4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
      xmm3 = splat4f(1.0f);                                   // xmm3:   1.0     1.0     1.0     1.0
 
-     xmm4 = _mm_unpacklo_ps(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
-     xmm6 = _mm_unpackhi_ps(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
-     xmm5 = _mm_unpacklo_ps(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
-     xmm7 = _mm_unpackhi_ps(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
+     xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
+     xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
+     xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
+     xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
 
-     xmm0 = _mm_shuffle_ps(xmm4, xmm5, _MM_SHUFFLE(1, 0, 1, 0)); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
-     xmm1 = _mm_shuffle_ps(xmm4, xmm5, _MM_SHUFFLE(3, 2, 3, 2)); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
-     xmm2 = _mm_shuffle_ps(xmm6, xmm7, _MM_SHUFFLE(1, 0, 1, 0)); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
-     xmm3 = _mm_shuffle_ps(xmm6, xmm7, _MM_SHUFFLE(3, 2, 3, 2)); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
+     xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
+     xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
+     xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
+     xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
 
 
      if (m_particles->m_alive[i])
@@ -555,4 +563,13 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
    m_vao->draw();
    m_vao->unbind();
  }
+
+
+ void ParticleSystem::updatePosition(float _dx, float _dy, float _dz)
+ {
+    m_pos.m_x+=_dx;
+    m_pos.m_y+=_dy;
+    m_pos.m_z+=_dz;
+ }
+
 
