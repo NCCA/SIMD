@@ -3,17 +3,22 @@ basic OpenGL demo modified from http://qt-project.org/doc/qt-5.0/qtgui/openglwin
 ****************************************************************************/
 #include "NGLScene.h"
 #include <QtGui/QGuiApplication>
+#include <QCommandLineParser>
 #include <iostream>
+
 
 
 int main(int argc, char** argv)
 {
   QGuiApplication app(argc, argv);
+
   // create an OpenGL format specifier
   QSurfaceFormat format;
   // set the number of samples for multisampling
   // will need to enable glEnable(GL_MULTISAMPLE); once we have a context
   format.setSamples(4);
+  //format.setSwapInterval(0);
+  format.setSwapBehavior(QSurfaceFormat::SwapBehavior::DoubleBuffer);
 #if defined(__APPLE__)
   // at present mac osx Mountain Lion only supports GL3.2
   // the new mavericks will have GL 4.x so can change
@@ -30,9 +35,11 @@ int main(int argc, char** argv)
   format.setDepthBufferSize(24);
   // set that as the default format for all windows
   QSurfaceFormat::setDefaultFormat(format);
-
+  size_t numParticles=1000000;
+  if(argc == 2)
+    numParticles=atoi(argv[1]);
   // now we are going to create our scene window
-  NGLScene window;
+  NGLScene window(numParticles);
 
   // we can now query the version to see if it worked
   std::cout << "Profile is " << format.majorVersion() << " " << format.minorVersion() << "\n";

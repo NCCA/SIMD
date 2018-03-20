@@ -9,11 +9,18 @@
 #include <ngl/NGLStream.h>
 #include <ngl/ShaderLib.h>
 #include <ngl/VAOPrimitives.h>
+#include <ngl/Texture.h>
 
 
-NGLScene::NGLScene()
+NGLScene::NGLScene(size_t _numParticles)
 {
   setTitle( "SIMD Particles" );
+  m_fpsTimer =startTimer(0);
+  m_fps=0;
+  m_frames=0;
+  m_numParticles=_numParticles;
+  m_timer.start();
+
 }
 
 
@@ -30,6 +37,7 @@ void NGLScene::resizeGL( int _w, int _h )
   m_win.height = static_cast<int>( _h * devicePixelRatio() );
 }
 
+const char * ParticleShader="ParticleShader";
 
 void NGLScene::initializeGL()
 {
@@ -46,23 +54,33 @@ void NGLScene::initializeGL()
   // now to load the shader and set the values
   // grab an instance of shader manager
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  shader->use(ngl::nglColourShader);
-  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
 
-  m_particle.reset(new ParticleSystem(/*16000*64*/1000000,{-1,0,0}));
-  startTimer(10);
+  m_particle.reset(new ParticleSystem(/*16000*64*/m_numParticles,{0,0,0}));
+  m_particleUpdateTimer=startTimer(1);
   ngl::VAOPrimitives::instance()->createLineGrid("grid",20,20,100);
+  m_text.reset(new ngl::Text(QFont("Arial",14)));
+  m_text->setScreenSize(width(),height());
+  m_text->setColour(1,1,0);
+  shader->loadShader(ParticleShader,"shaders/ParticleVertex.glsl",
+                                    "shaders/ParticleFragment.glsl");
+
+  shader->use(ParticleShader);
+  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
+  ngl::Texture t("textures/SmokeTest.png");
+  m_texID=t.setTextureGL();
+
+
 }
 
 
 void NGLScene::loadMatricesToShader()
 {
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  shader->use(ngl::nglColourShader);
+  shader->use(ParticleShader);
 
   ngl::Mat4 MVP;
-  ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,200.0f);
-  ngl::Mat4 view=ngl::lookAt({2,2,2},{0,0,0},{0,1,0});
+  const ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,200.0f);
+  const ngl::Mat4 view=ngl::lookAt({0,2,2},{0,0,0},{0,1,0});
   shader->setUniform("MVP",projection*view*m_mouseGlobalTX);
 /*  MVP          = m_cam.getVPMatrix() * M;
 
@@ -97,9 +115,16 @@ void NGLScene::paintGL()
 
   // draw
   loadMatricesToShader();
-  //glPointSize(4.0);
+  glBindTexture(GL_TEXTURE_2D,m_texID);
+
+  glPointSize(2);
   m_particle->render();
   ngl::VAOPrimitives::instance()->draw("grid");
+  QString text=QString("Total Particles %1 %2 fps").arg(m_numParticles).arg(m_fps);
+  m_text->renderText(10,40,text);
+  ++m_frames;
+
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -137,13 +162,15 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
       m_win.spinYFace=0;
       m_modelPos.set(ngl::Vec3::zero());
     break;
+    case Qt::Key_C : m_circle^=true; break;
+    case Qt::Key_A : m_animate^=true; break;
 
     case Qt::Key_Left : m_particle->updatePosition(-0.1f,0,0); break;
     case Qt::Key_Right : m_particle->updatePosition(0.1f,0,0); break;
     case Qt::Key_Up : m_particle->updatePosition(0,0.1f,0); break;
     case Qt::Key_Down : m_particle->updatePosition(0,-0.1f,0); break;
-    case Qt::Key_BraceLeft : m_particle->updatePosition(0,0.0,0.1f); break;
-    case Qt::Key_BraceRight : m_particle->updatePosition(0,0,-0.1f); break;
+    case Qt::Key_I : m_particle->updatePosition(0,0.0,0.1f); break;
+    case Qt::Key_O : m_particle->updatePosition(0,0,-0.1f); break;
 
     default:
       break;
@@ -152,8 +179,32 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
 }
 
 
-void NGLScene::timerEvent(QTimerEvent *)
+void NGLScene::timerEvent(QTimerEvent *_event)
 {
-  m_particle->update(0.01f);
+  if(_event->timerId() ==   m_particleUpdateTimer)
+  {
+    if(m_circle)
+    {
+      float rad=0.1f;
+      static float time=0.0f;
+      float pointOnCircleX= cosf(ngl::radians(time))*rad;
+      float pointOnCircleZ= sinf(ngl::radians(time))*rad;
+      m_particle->updatePosition(pointOnCircleX,0.0f,pointOnCircleZ);
+      time+=5.0f;
+    }
+    if(m_animate)
+      m_particle->update(0.01f);
+
+  }
+  if(_event->timerId() == m_fpsTimer)
+    {
+      if( m_timer.elapsed() > 1000.0)
+      {
+        m_fps=m_frames;
+        m_frames=0;
+        m_timer.restart();
+      }
+     }
+
   update();
 }

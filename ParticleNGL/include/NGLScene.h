@@ -6,6 +6,7 @@
 #include <ngl/Light.h>
 #include <ngl/Text.h>
 #include <QOpenGLWindow>
+#include <QTime>
 #include "ParticleSystem.h"
 //----------------------------------------------------------------------------------------------------------------------
 /// @file NGLScene.h
@@ -28,7 +29,7 @@ public:
   /// @brief ctor for our NGL drawing class
   /// @param [in] parent the parent window to the class
   //----------------------------------------------------------------------------------------------------------------------
-  NGLScene();
+  NGLScene(size_t _numParticles);
   //----------------------------------------------------------------------------------------------------------------------
   /// @brief dtor must close down ngl and release OpenGL resources
   //----------------------------------------------------------------------------------------------------------------------
@@ -93,9 +94,24 @@ private:
   //----------------------------------------------------------------------------------------------------------------------
   void wheelEvent(QWheelEvent *_event) override;
 
-  void timerEvent(QTimerEvent *) override ;
+  void timerEvent(QTimerEvent *_event) override ;
 
   std::unique_ptr<ParticleSystem> m_particle;
+  /// @brief flag for the fps timer
+  int m_fpsTimer;
+  int m_particleUpdateTimer;
+  std::unique_ptr <ngl::Text> m_text;
+  int m_fps;
+  //----------------------------------------------------------------------------------------------------------------------
+  /// @brief number of frames for the fps counter
+  //----------------------------------------------------------------------------------------------------------------------
+  int m_frames;
+  size_t m_numParticles;
+  QTime m_timer;
+  bool m_circle=false;
+  bool m_animate=true;
+  GLuint m_texID;
+
 };
 
 
