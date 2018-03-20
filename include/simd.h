@@ -17,10 +17,10 @@
 #include <cstdint>
 
 #if defined(_MSC_VER)
-#define ALIGNED_(x) __declspec(align(x))
+#define ALIGNED(x) __declspec(align(x))
 #else
 #if defined(__GNUC__)
-#define ALIGNED_(x) __attribute__ ((aligned(x)))
+#define ALIGNED(x) __attribute__ ((aligned(x)))
 #endif
 #endif
 

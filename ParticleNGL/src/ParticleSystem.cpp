@@ -1,12 +1,27 @@
 #include "ParticleSystem.h"
 #include <cassert>
 #include <iostream>
+#include <ngl/VAOFactory.h>
+#include <ngl/SimpleVAO.h>
+#include <ngl/NGLStream.h>
+#include <vector>
+
 ParticleSystem::ParticleSystem(size_t _numParticles,ngl::Vec3 _pos)
 {
   m_numParticles=_numParticles;
   m_particles.reset(new Particle(_numParticles));
   m_pos=_pos;
   setDefaults();
+  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
+  m_vao->bind();
+  std::vector<ngl::Vec3> data(_numParticles);
+  m_vao->setData( ngl::SimpleVAO::VertexData(m_numParticles*sizeof(ngl::Vec3),data[0].m_x));
+  // We must do this each time as we change the data.
+  m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
+  m_vao->setNumIndices(m_numParticles);
+  m_vao->unbind();
+
+
 }
 
 ParticleSystem::~ParticleSystem()
@@ -370,10 +385,12 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
    std::unique_ptr<ngl::Vec3[]> pVertices(new ngl::Vec3[m_numParticles]);
    // Fill vertex buffer with current data
    size_t i = 0;
+   ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
+  // std::cout<<"frame\n";
+
    for (i = 0; i < m_numParticles - remaining_particles; i+=4)
    {
-                                                                 //         r3      r2      r1      r0
-                                                                 //       ------------------------------
+    // std::cout<<"v "<<*verts<<'\n';                                                          //         r3      r2      r1      r0                                                                 //       ------------------------------
      xmm0 = load4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
      xmm1 = load4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
      xmm2 = load4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
@@ -392,43 +409,55 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
      if (m_particles->m_alive[i])
      {
        store4f(v, xmm0);
-       //pVertices->v.x = v[0];
-       //pVertices->v.y = v[1];
-       //pVertices->v.z = v[2];
-       //pVertices++;
-      std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
+       //std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
      }
 
      if (m_particles->m_alive[i+1])
      {
        store4f(v, xmm1);
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
 //       pVertices->v.x = v[0];
 //       pVertices->v.y = v[1];
 //       pVertices->v.z = v[2];
 //       pVertices++;
-       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+//       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
 
      }
 
      if (m_particles->m_alive[i+2])
      {
        store4f(v, xmm2);
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
 //       pVertices->v.x = v[0];
 //       pVertices->v.y = v[1];
 //       pVertices->v.z = v[2];
 //       pVertices++;
-       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+//       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
 
      }
 
      if (m_particles->m_alive[i+3])
      {
        store4f(v, xmm3);
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
 //       pVertices->v.x = v[0];
 //       pVertices->v.y = v[1];
 //       pVertices->v.z = v[2];
 //       pVertices++;
-       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+//       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
 
      }
    }
@@ -460,46 +489,70 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
      if (m_particles->m_alive[i])
      {
        store4f(v, xmm0);
-//       pVertices->v.x = v[0];
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
+
+       //       pVertices->v.x = v[0];
 //       pVertices->v.y = v[1];
 //       pVertices->v.z = v[2];
 //       pVertices++;
-       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+//       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
 
      }
 
      if (m_particles->m_alive[i+1])
      {
        store4f(v, xmm1);
-//       pVertices->v.x = v[0];
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
+
+       //       pVertices->v.x = v[0];
 //       pVertices->v.y = v[1];
 //       pVertices->v.z = v[2];
 //       pVertices++;
-       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+//       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
 
      }
 
      if (m_particles->m_alive[i+2])
      {
        store4f(v, xmm2);
-//       pVertices->v.x = v[0];
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
+
+       //       pVertices->v.x = v[0];
 //       pVertices->v.y = v[1];
 //       pVertices->v.z = v[2];
 //       pVertices++;
-       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+//       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
 
      }
 
      if (m_particles->m_alive[i+3])
      {
        store4f(v, xmm3);
-//       pVertices->v.x = v[0];
+       verts->m_x = v[0];
+       verts->m_y = v[1];
+       verts->m_z = v[2];
+       ++verts;
+
+       //       pVertices->v.x = v[0];
 //       pVertices->v.y = v[1];
 //       pVertices->v.z = v[2];
 //       pVertices++;
-       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
+//       std::cout<<"P "<<v[0]<<' '<<v[1]<<' '<<v[2]<<'\n';
 
      }
    }
+   m_vao->unmapBuffer();
+   m_vao->bind();
+   m_vao->draw();
+   m_vao->unbind();
  }
 
