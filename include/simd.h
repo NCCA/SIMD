@@ -15,6 +15,15 @@
 
 #include <immintrin.h>
 #include <cstdint>
+
+#if defined(_MSC_VER)
+#define ALIGNED_(x) __declspec(align(x))
+#else
+#if defined(__GNUC__)
+#define ALIGNED_(x) __attribute__ ((aligned(x)))
+#endif
+#endif
+
 // SSE3/4 types AVX128
 using f128=__m128; // float[4]
 using i128=__m128i; // int64[2], int32[4], etc
