@@ -32,11 +32,12 @@ ParticleSystem::~ParticleSystem()
 }
 
 
+
+
 void ParticleSystem::setDefaults()
 {
   size_t i;
   size_t remaining_particles = m_numParticles % 4;
-  std::cout<<"remain "<<remaining_particles<<' '<<m_numParticles<<'\n';
   ALIGNED(16) float rnd[4];
   const f128 startX=splat4f(m_pos.m_x);
   const f128 startY=splat4f(m_pos.m_y);
@@ -66,10 +67,10 @@ void ParticleSystem::setDefaults()
     store4f(&m_particles->m_ay[i],splat4f( -rng->randomPositiveNumber(1.0f)));
     store4f(&m_particles->m_az[i],splat4f(rng->randomNumber(1.0f)));
 
-    m_particles->m_energy[ i ] = rng->randomPositiveNumber(3.0f);
-    m_particles->m_energy[i+1] = rng->randomPositiveNumber(3.0f);
-    m_particles->m_energy[i+2] = rng->randomPositiveNumber(3.0f);
-    m_particles->m_energy[i+3] = rng->randomPositiveNumber(3.0f);
+    m_particles->m_energy[ i ] = rng->randomPositiveNumber(m_energyRange);
+    m_particles->m_energy[i+1] = rng->randomPositiveNumber(m_energyRange);
+    m_particles->m_energy[i+2] = rng->randomPositiveNumber(m_energyRange);
+    m_particles->m_energy[i+3] = rng->randomPositiveNumber(m_energyRange);
 
     m_particles->m_alive[ i ] = true;
     m_particles->m_alive[i+1] = true;
@@ -97,14 +98,14 @@ void ParticleSystem::setDefaults()
     rnd[3] = rng->randomNumber(1.0f);
     storeu4f(&m_particles->m_vz[i], load4f(&rnd[0]));
 
-    storeu4f(&m_particles->m_ax[i],splat4f( rng->randomPositiveNumber(1.0f)));//(float)rand() / (float)RAND_MAX));
-    storeu4f(&m_particles->m_ay[i],splat4f( -rng->randomPositiveNumber(1.0f)));// * (float)rand() / (float)RAND_MAX));
-    storeu4f(&m_particles->m_az[i],splat4f( rng->randomPositiveNumber(1.0f)));//(float)rand() / (float)RAND_MAX));
+    storeu4f(&m_particles->m_ax[i],splat4f( rng->randomPositiveNumber(1.0f)));
+    storeu4f(&m_particles->m_ay[i],splat4f( -rng->randomPositiveNumber(1.0f)));
+    storeu4f(&m_particles->m_az[i],splat4f( rng->randomPositiveNumber(1.0f)));
 
-    m_particles->m_energy[ i ] = rng->randomPositiveNumber(3.0f);
-    m_particles->m_energy[i+1] = rng->randomPositiveNumber(3.0f);
-    m_particles->m_energy[i+2] = rng->randomPositiveNumber(3.0f);
-    m_particles->m_energy[i+3] = rng->randomPositiveNumber(3.0f);
+    m_particles->m_energy[ i ] = rng->randomPositiveNumber(m_energyRange);
+    m_particles->m_energy[i+1] = rng->randomPositiveNumber(m_energyRange);
+    m_particles->m_energy[i+2] = rng->randomPositiveNumber(m_energyRange);
+    m_particles->m_energy[i+3] = rng->randomPositiveNumber(m_energyRange);
 
     m_particles->m_alive[ i ] = true;
     m_particles->m_alive[i+1] = true;
@@ -134,8 +135,6 @@ void ParticleSystem::update(float _elapsed)
   {
     // velocity = velocity + (time * acceleration)
     vel_x = add4f(load4f(&m_particles->m_vx[i]), mul4f(frame_time, load4f(&m_particles->m_ax[i])));
-    //vel_x=fmadd4f(frame_time,load4f(&m_particles->m_ax[i]),load4f(&m_particles->m_vx[i]));
-
     vel_y = add4f(load4f(&m_particles->m_vy[i]), mul4f(frame_time, load4f(&m_particles->m_ay[i])));
     vel_z = add4f(load4f(&m_particles->m_vz[i]), mul4f(frame_time, load4f(&m_particles->m_az[i])));
 
@@ -154,91 +153,91 @@ void ParticleSystem::update(float _elapsed)
     // energy = energy - time
     store4f(&m_particles->m_energy[i], sub4f(load4f(&m_particles->m_energy[i]), frame_time));
 
-       switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
-      {
-      case 0: // f f f f
-        // do nothing; all 4 particles are alive
-        break;
-      case 1: // f f f t
-        // particle [i] is dead
-        setParticleDefaults(i);
-        break;
-      case 2: // f f t f
-        // particle [i+1] is dead
-        setParticleDefaults(i+1);
-        break;
-      case 3: // f f t t
-        // particles [i] and [i+1] are dead
-        setParticleDefaults(i);
-        setParticleDefaults(i+1);
-        break;
-      case 4: // f t f f
-        // particle [i+2] is dead
-        setParticleDefaults(i+2);
-        break;
-      case 5: // f t f t
-        // particles [i] and [i+2] are dead
-        setParticleDefaults(i);
-        setParticleDefaults(i+2);
-        break;
-      case 6: // f t t f
-        // particles [i+1] and [i+2] are dead
-        setParticleDefaults(i+1);
-        setParticleDefaults(i+2);
-        break;
-      case 7: // f t t t
-        // particles [i] and [i+1] and [i+2] are dead
-        setParticleDefaults(i);
-        setParticleDefaults(i+1);
-        setParticleDefaults(i+2);
-        break;
-      case 8: // t f f f
-        // particle [i+3] is dead
-        setParticleDefaults(i+3);
-        break;
-      case 9: // t f f t
-        // particles [i] and [i+3] are dead
-        setParticleDefaults(i);
-        setParticleDefaults(i+3);
-        break;
-      case 10: // t f t f
-        // particles [i+1] and [i+3] are dead
-        setParticleDefaults(i+1);
-        setParticleDefaults(i+3);
-        break;
-      case 11: // t f t t
-        // particles [i] and [i+1] and [i+3] are dead
-        setParticleDefaults(i);
-        setParticleDefaults(i+1);
-        setParticleDefaults(i+3);
-        break;
-      case 12: // t t f f
-        // particles [i+2] and [i+3] are dead
-        setParticleDefaults(i+2);
-        setParticleDefaults(i+3);
-        break;
-      case 13: // t t f t
-        // particles [i] and [i+2] and [i+3] are dead
-        setParticleDefaults(i);
-        setParticleDefaults(i+2);
-        setParticleDefaults(i+3);
-        break;
-      case 14: // t t t f
-        // particles [i+1] and [i+2] and [i+3] are dead
-        setParticleDefaults(i+1);
-        setParticleDefaults(i+2);
-        setParticleDefaults(i+3);
-        break;
-      case 15: // t t t t
-        // all 4 particles are dead
-        setParticleDefaults(i);
-        setParticleDefaults(i+1);
-        setParticleDefaults(i+2);
-        setParticleDefaults(i+3);
-        break;
-      default:
-        break;
-    }
+    switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
+    {
+    case 0: // f f f f
+      // do nothing; all 4 particles are alive
+      break;
+    case 1: // f f f t
+      // particle [i] is dead
+      setParticleDefaults(i);
+      break;
+    case 2: // f f t f
+      // particle [i+1] is dead
+      setParticleDefaults(i+1);
+      break;
+    case 3: // f f t t
+      // particles [i] and [i+1] are dead
+      setParticleDefaults(i);
+      setParticleDefaults(i+1);
+      break;
+    case 4: // f t f f
+      // particle [i+2] is dead
+      setParticleDefaults(i+2);
+      break;
+    case 5: // f t f t
+      // particles [i] and [i+2] are dead
+      setParticleDefaults(i);
+      setParticleDefaults(i+2);
+      break;
+    case 6: // f t t f
+      // particles [i+1] and [i+2] are dead
+      setParticleDefaults(i+1);
+      setParticleDefaults(i+2);
+      break;
+    case 7: // f t t t
+      // particles [i] and [i+1] and [i+2] are dead
+      setParticleDefaults(i);
+      setParticleDefaults(i+1);
+      setParticleDefaults(i+2);
+      break;
+    case 8: // t f f f
+      // particle [i+3] is dead
+      setParticleDefaults(i+3);
+      break;
+    case 9: // t f f t
+      // particles [i] and [i+3] are dead
+      setParticleDefaults(i);
+      setParticleDefaults(i+3);
+      break;
+    case 10: // t f t f
+      // particles [i+1] and [i+3] are dead
+      setParticleDefaults(i+1);
+      setParticleDefaults(i+3);
+      break;
+    case 11: // t f t t
+      // particles [i] and [i+1] and [i+3] are dead
+      setParticleDefaults(i);
+      setParticleDefaults(i+1);
+      setParticleDefaults(i+3);
+      break;
+    case 12: // t t f f
+      // particles [i+2] and [i+3] are dead
+      setParticleDefaults(i+2);
+      setParticleDefaults(i+3);
+      break;
+    case 13: // t t f t
+      // particles [i] and [i+2] and [i+3] are dead
+      setParticleDefaults(i);
+      setParticleDefaults(i+2);
+      setParticleDefaults(i+3);
+      break;
+    case 14: // t t t f
+      // particles [i+1] and [i+2] and [i+3] are dead
+      setParticleDefaults(i+1);
+      setParticleDefaults(i+2);
+      setParticleDefaults(i+3);
+      break;
+    case 15: // t t t t
+      // all 4 particles are dead
+      setParticleDefaults(i);
+      setParticleDefaults(i+1);
+      setParticleDefaults(i+2);
+      setParticleDefaults(i+3);
+      break;
+    default:
+      break;
+  }
 
     // do collision
     // stretch particles
@@ -257,11 +256,11 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
   m_particles->m_vy[particleIndex]      = rng->randomPositiveNumber(1.0f) * 6.0f + 4.0f;
   m_particles->m_vz[particleIndex]      = dir.m_y;
 
-  m_particles->m_ax[particleIndex]      = 0;//(float)rand() / (float)RAND_MAX;
-  m_particles->m_ay[particleIndex]      = -1.0f;// * (float)rand() / (float)RAND_MAX;
-  m_particles->m_az[particleIndex]      = 0;//(float)rand() / (float)RAND_MAX;
+  m_particles->m_ax[particleIndex]      = rng->randomPositiveNumber(1.0f);
+  m_particles->m_ay[particleIndex]      = -rng->randomPositiveNumber(1.0f);
+  m_particles->m_az[particleIndex]      = rng->randomPositiveNumber(1.0f);
 
-  m_particles->m_energy[particleIndex]  = rng->randomPositiveNumber(1.0f) * 3.0f;
+  m_particles->m_energy[particleIndex]  = rng->randomPositiveNumber(m_energyRange);
 
   m_particles->m_alive[particleIndex]   = true;
 }
@@ -275,7 +274,7 @@ void ParticleSystem::render()
  size_t i = 0;
 
  ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
-
+ // lambda to set the vertex from a register
  auto setVert=[&verts](f128 reg)
  {
    ALIGNED(16)float v[4];

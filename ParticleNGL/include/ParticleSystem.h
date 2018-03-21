@@ -19,7 +19,7 @@ class ParticleSystem
     inline size_t getNumAlive() const { return m_numAlive;       }
     void updatePosition(float _dx, float _dy, float _dz);
 
-
+    void updateEnergy(float _dt){m_energyRange+=_dt;}
 
   private :
     size_t m_numAlive=0;
@@ -27,12 +27,9 @@ class ParticleSystem
     std::unique_ptr<Particle>  m_particles;
 
     ngl::Vec3 m_pos;
-    float s_gravity=-4.0f;     /**< Gravity value */
-    float s_size=1.0f;        /**< Size multiplier */
-    float s_speed=1.0f;       /**< Speed multiplier */
-    bool  s_alwaysAlive=true; /**< Keep system alive */
+    float s_gravity=-9.0f;     /**< Gravity value */
     std::unique_ptr<ngl::AbstractVAO> m_vao;
-
+    float m_energyRange=1.0f;
 
 
 };

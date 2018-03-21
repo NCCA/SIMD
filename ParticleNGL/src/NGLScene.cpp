@@ -66,17 +66,17 @@ void NGLScene::initializeGL()
 
   shader->use(ParticleShader);
   shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
-  ngl::Texture t("textures/SmokeTest.png");
+  ngl::Texture t("textures/texture.png");
   m_texID=t.setTextureGL();
 
 
 }
 
 
-void NGLScene::loadMatricesToShader()
+void NGLScene::loadMatricesToShader(const char *_shader)
 {
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
-  shader->use(ParticleShader);
+  shader->use(_shader);
 
   ngl::Mat4 MVP;
   const ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,200.0f);
@@ -114,11 +114,13 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
 
   // draw
-  loadMatricesToShader();
+  loadMatricesToShader(ParticleShader);
   glBindTexture(GL_TEXTURE_2D,m_texID);
 
-  glPointSize(2);
+  glPointSize(m_pointSize);
   m_particle->render();
+
+  loadMatricesToShader(ngl::nglColourShader);
   ngl::VAOPrimitives::instance()->draw("grid");
   QString text=QString("Total Particles %1 %2 fps").arg(m_numParticles).arg(m_fps);
   m_text->renderText(10,40,text);
@@ -164,6 +166,10 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
     break;
     case Qt::Key_C : m_circle^=true; break;
     case Qt::Key_A : m_animate^=true; break;
+    case Qt::Key_1 : m_pointSize-=1; break;
+    case Qt::Key_2 : m_pointSize+=1; break;
+    case Qt::Key_3 : m_particle->updateEnergy(-0.1f); break;
+    case Qt::Key_4 : m_particle->updateEnergy(0.1f); break;
 
     case Qt::Key_Left : m_particle->updatePosition(-0.1f,0,0); break;
     case Qt::Key_Right : m_particle->updatePosition(0.1f,0,0); break;

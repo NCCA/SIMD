@@ -6,6 +6,9 @@ uniform sampler2D tex;
 uniform vec4 Colour;
 void main()
 {
-
-  fragColour=texture(tex,gl_PointCoord);
+  vec4 colour=texture(tex,gl_PointCoord);
+  if(colour.a == 0)
+    discard;
+  else
+    fragColour=colour;
 }

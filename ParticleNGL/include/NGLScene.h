@@ -64,7 +64,7 @@ private:
   //----------------------------------------------------------------------------------------------------------------------
   /// @brief method to load transform matrices to the shader
   //----------------------------------------------------------------------------------------------------------------------
-  void loadMatricesToShader();
+  void loadMatricesToShader(const char *_shader);
   //----------------------------------------------------------------------------------------------------------------------
   /// @brief Qt Event called when a key is pressed
   /// @param [in] _event the Qt event to query for size etc
@@ -111,6 +111,7 @@ private:
   bool m_circle=false;
   bool m_animate=true;
   GLuint m_texID;
+  GLint m_pointSize=2;
 
 };
 
