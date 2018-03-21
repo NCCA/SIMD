@@ -1,5 +1,6 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
+// based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 
 #include "AlignedArray.h"
 class Particle

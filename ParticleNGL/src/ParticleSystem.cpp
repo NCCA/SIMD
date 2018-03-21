@@ -6,6 +6,7 @@
 #include <ngl/NGLStream.h>
 #include <ngl/Random.h>
 #include <vector>
+// based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 
 ParticleSystem::ParticleSystem(size_t _numParticles,ngl::Vec3 _pos)
 {
@@ -30,20 +31,13 @@ ParticleSystem::~ParticleSystem()
 
 }
 
-int random_dir()
-{
-  if (rand() > RAND_MAX / 2)
-    return 1;
-  else
-    return -1;
-}
 
 void ParticleSystem::setDefaults()
 {
   size_t i;
   size_t remaining_particles = m_numParticles % 4;
+  std::cout<<"remain "<<remaining_particles<<' '<<m_numParticles<<'\n';
   ALIGNED(16) float rnd[4];
-//  const f128 ZERO = set4f(m_pos.m_x,m_pos.m_y,m_pos.z);///zero4f();
   const f128 startX=splat4f(m_pos.m_x);
   const f128 startY=splat4f(m_pos.m_y);
   const f128 startZ=splat4f(m_pos.m_z);
@@ -83,29 +77,29 @@ void ParticleSystem::setDefaults()
     m_particles->m_alive[i+3] = true;
   }
 
-  if (0 != remaining_particles)
+  if ( remaining_particles!=0)
   {
     i -= (4 - remaining_particles);
-
-    store4f(&m_particles->m_x[i], startX);
-    store4f(&m_particles->m_y[i], startY);
-    store4f(&m_particles->m_z[i], startZ);
+    // note use of unaligned stores here due to not being on boundary
+    storeu4f(&m_particles->m_x[i], startX);
+    storeu4f(&m_particles->m_y[i], startY);
+    storeu4f(&m_particles->m_z[i], startZ);
 
     rnd[0] = rng->randomNumber(1.0f);
     rnd[1] = rng->randomNumber(1.0f);
     rnd[2] = rng->randomNumber(1.0f);
     rnd[3] = rng->randomNumber(1.0f);
-    store4f(&m_particles->m_vx[i], load4f(&rnd[0]));
-    store4f(&m_particles->m_vy[i], splat4f(4.0f));
+    storeu4f(&m_particles->m_vx[i], load4f(&rnd[0]));
+    storeu4f(&m_particles->m_vy[i], splat4f(4.0f));
     rnd[0] = rng->randomNumber(1.0f);
     rnd[1] = rng->randomNumber(1.0f);
     rnd[2] = rng->randomNumber(1.0f);
     rnd[3] = rng->randomNumber(1.0f);
-    store4f(&m_particles->m_vz[i], load4f(&rnd[0]));
+    storeu4f(&m_particles->m_vz[i], load4f(&rnd[0]));
 
-    store4f(&m_particles->m_ax[i],splat4f( rng->randomPositiveNumber(1.0f)));//(float)rand() / (float)RAND_MAX));
-    store4f(&m_particles->m_ay[i],splat4f( -rng->randomPositiveNumber(1.0f)));// * (float)rand() / (float)RAND_MAX));
-    store4f(&m_particles->m_az[i],splat4f( rng->randomPositiveNumber(1.0f)));//(float)rand() / (float)RAND_MAX));
+    storeu4f(&m_particles->m_ax[i],splat4f( rng->randomPositiveNumber(1.0f)));//(float)rand() / (float)RAND_MAX));
+    storeu4f(&m_particles->m_ay[i],splat4f( -rng->randomPositiveNumber(1.0f)));// * (float)rand() / (float)RAND_MAX));
+    storeu4f(&m_particles->m_az[i],splat4f( rng->randomPositiveNumber(1.0f)));//(float)rand() / (float)RAND_MAX));
 
     m_particles->m_energy[ i ] = rng->randomPositiveNumber(3.0f);
     m_particles->m_energy[i+1] = rng->randomPositiveNumber(3.0f);
@@ -160,9 +154,7 @@ void ParticleSystem::update(float _elapsed)
     // energy = energy - time
     store4f(&m_particles->m_energy[i], sub4f(load4f(&m_particles->m_energy[i]), frame_time));
 
-    if (s_alwaysAlive)
-    {
-      switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
+       switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
       {
       case 0: // f f f f
         // do nothing; all 4 particles are alive
@@ -246,110 +238,6 @@ void ParticleSystem::update(float _elapsed)
         break;
       default:
         break;
-      }
-    }
-    else // !mInfo.alwaysAlive == true
-    {
-      switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
-      {
-      case 0: // f f f f
-        // do nothing; all 4 particles are alive
-        break;
-      case 1: // f f f t
-        // particle [i] is dead
-        m_particles->m_alive[i] = false;
-        m_numAlive -= 1;
-        break;
-      case 2: // f f t f
-        // particle [i+1] is dead
-        m_particles->m_alive[i+1] = false;
-        m_numAlive -= 1;
-        break;
-      case 3: // f f t t
-        // particles [i] and [i+1] are dead
-        m_particles->m_alive[ i ] = false;
-        m_particles->m_alive[i+1] = false;
-        m_numAlive -= 2;
-        break;
-      case 4: // f t f f
-        // particle [i+2] is dead
-        m_particles->m_alive[i+2] = false;
-        m_numAlive -= 1;
-        break;
-      case 5: // f t f t
-        // particles [i] and [i+2] are dead
-        m_particles->m_alive[ i ] = false;
-        m_particles->m_alive[i+2] = false;
-        m_numAlive -= 2;
-        break;
-      case 6: // f t t f
-        // particles [i+1] and [i+2] are dead
-        m_particles->m_alive[i+1] = false;
-        m_particles->m_alive[i+2] = false;
-        m_numAlive -= 2;
-        break;
-      case 7: // f t t t
-        // particles [i] and [i+1] and [i+2] are dead
-        m_particles->m_alive[ i ] = false;
-        m_particles->m_alive[i+1] = false;
-        m_particles->m_alive[i+2] = false;
-        m_numAlive -= 3;
-        break;
-      case 8: // t f f f
-        // particle [i+3] is dead
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 1;
-        break;
-      case 9: // t f f t
-        // particles [i] and [i+3] are dead
-        m_particles->m_alive[ i ] = false;
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 2;
-        break;
-      case 10: // t f t f
-        // particles [i+1] and [i+3] are dead
-        m_particles->m_alive[i+1] = false;
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 2;
-        break;
-      case 11: // t f t t
-        // particles [i] and [i+1] and [i+3] are dead
-        m_particles->m_alive[ i ] = false;
-        m_particles->m_alive[i+1] = false;
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 3;
-        break;
-      case 12: // t t f f
-        // particles [i+2] and [i+3] are dead
-        m_particles->m_alive[i+2] = false;
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 2;
-        break;
-      case 13: // t t f t
-        // particles [i] and [i+2] and [i+3] are dead
-        m_particles->m_alive[ i ] = false;
-        m_particles->m_alive[i+2] = false;
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 3;
-        break;
-      case 14: // t t t f
-        // particles [i+1] and [i+2] and [i+3] are dead
-        m_particles->m_alive[i+1] = false;
-        m_particles->m_alive[i+2] = false;
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 3;
-        break;
-      case 15: // t t t t
-        // all 4 particles are dead
-        m_particles->m_alive[ i ] = false;
-        m_particles->m_alive[i+1] = false;
-        m_particles->m_alive[i+2] = false;
-        m_particles->m_alive[i+3] = false;
-        m_numAlive -= 4;
-        break;
-      default:
-        break;
-      }
     }
 
     // do collision
@@ -378,137 +266,115 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
   m_particles->m_alive[particleIndex]   = true;
 }
 
- void ParticleSystem::render()
+void ParticleSystem::render()
+{
+
+ f128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+ size_t remaining_particles = m_numParticles % 4;
+
+ size_t i = 0;
+
+ ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
+
+ auto setVert=[&verts](f128 reg)
  {
-
-   f128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
    ALIGNED(16)float v[4];
-   size_t remaining_particles = m_numParticles % 4;
-   std::unique_ptr<ngl::Vec3[]> pVertices(new ngl::Vec3[m_numParticles]);
-   // Fill vertex buffer with current data
-   size_t i = 0;
-   ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
-  // std::cout<<"frame\n";
+   store4f(v, reg);
+   verts->m_x = v[0];
+   verts->m_y = v[1];
+   verts->m_z = v[2];
+   ++verts;
+ };
 
-   for (i = 0; i < m_numParticles - remaining_particles; i+=4)
+
+ for (i = 0; i < m_numParticles - remaining_particles; i+=4)
+ {
+   xmm0 = load4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
+   xmm1 = load4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
+   xmm2 = load4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
+   xmm3 = splat4f(1.0f);                                   // xmm3:   1.0     1.0     1.0     1.0
+
+   xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
+   xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
+   xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
+   xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
+
+   xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
+   xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
+   xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
+   xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
+
+   if (m_particles->m_alive[i])
    {
-    // std::cout<<"v "<<*verts<<'\n';                                                          //         r3      r2      r1      r0                                                                 //       ------------------------------
-     xmm0 = load4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
-     xmm1 = load4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
-     xmm2 = load4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
-     xmm3 = splat4f(1.0f);                                   // xmm3:   1.0     1.0     1.0     1.0
-
-     xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
-     xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
-     xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
-     xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
-
-     xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
-     xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
-     xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
-     xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
-
-     if (m_particles->m_alive[i])
-     {
-       store4f(v, xmm0);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
-
-     if (m_particles->m_alive[i+1])
-     {
-       store4f(v, xmm1);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
-
-     if (m_particles->m_alive[i+2])
-     {
-       store4f(v, xmm2);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
-
-     if (m_particles->m_alive[i+3])
-     {
-       store4f(v, xmm3);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
+     setVert(xmm0);
    }
 
-
-   // Complete filling the vertex buffer with the remaining particles
-   if (0 != remaining_particles)
+   if (m_particles->m_alive[i+1])
    {
-     i -= (4 - remaining_particles);
-     verts -= (4 - remaining_particles);                                                                 //         r3      r2      r1      r0
-                                                                 //       ------------------------------
-     xmm0 = load4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
-     xmm1 = load4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
-     xmm2 = load4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
-     xmm3 = splat4f(1.0f);                                   // xmm3:   1.0     1.0     1.0     1.0
-
-     xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
-     xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
-     xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
-     xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
-
-     xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
-     xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
-     xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
-     xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
-
-
-     if (m_particles->m_alive[i])
-     {
-       store4f(v, xmm0);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
-
-     if (m_particles->m_alive[i+1])
-     {
-       store4f(v, xmm1);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
-
-     if (m_particles->m_alive[i+2])
-     {
-       store4f(v, xmm2);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
-
-     if (m_particles->m_alive[i+3])
-     {
-       store4f(v, xmm3);
-       verts->m_x = v[0];
-       verts->m_y = v[1];
-       verts->m_z = v[2];
-       ++verts;
-     }
+     setVert(xmm1);
    }
-   m_vao->unmapBuffer();
-   m_vao->bind();
-   m_vao->draw();
-   m_vao->unbind();
+
+   if (m_particles->m_alive[i+2])
+   {
+     setVert(xmm2);
+   }
+
+   if (m_particles->m_alive[i+3])
+   {
+     setVert(xmm3);
+   }
  }
+
+
+ // Complete filling the vertex buffer with the remaining particles
+ if (0 != remaining_particles)
+ {
+   i -= (4 - remaining_particles);
+   // Note use of unaligned loads here as not on boundary!
+   verts -= (4 - remaining_particles);                       //         r3      r2      r1      r0                                                               //       ------------------------------
+   xmm0 = loadu4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
+   xmm1 = loadu4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
+   xmm2 = loadu4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
+   xmm3 = splat4f(1.0f);                                     // xmm3:   1.0     1.0     1.0     1.0
+
+   xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
+   xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
+   xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
+   xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
+
+   xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
+   xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
+   xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
+   xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
+
+
+   if (m_particles->m_alive[i])
+   {
+     setVert(xmm0);
+   }
+
+   if (m_particles->m_alive[i+1])
+   {
+     setVert(xmm1);
+   }
+
+   if (m_particles->m_alive[i+2])
+   {
+     setVert(xmm2);
+   }
+
+   if (m_particles->m_alive[i+3])
+   {
+     setVert(xmm3);
+   }
+ }
+
+  m_vao->unmapBuffer();
+  // now render
+  m_vao->bind();
+  m_vao->draw();
+  m_vao->unbind();
+}
 
 
  void ParticleSystem::updatePosition(float _dx, float _dy, float _dz)

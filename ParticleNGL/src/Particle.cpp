@@ -1,4 +1,5 @@
 #include "Particle.h"
+// based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 
 Particle::Particle(size_t _numparticles)
 {

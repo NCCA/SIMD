@@ -3,6 +3,7 @@
 
 #include "simd.h"
 #include <cstring>
+#include <cassert>
 
 template <typename T, size_t align>
 class AlignedArrayRAII

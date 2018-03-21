@@ -1,6 +1,6 @@
 #ifndef PARTICLE_SYSTEM_H_
 #define PARTICLE_SYSTEM_H_
-
+// based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 #include "Particle.h"
 #include <ngl/Vec3.h>
 #include <ngl/AbstractVAO.h>
