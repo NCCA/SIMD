@@ -22,6 +22,7 @@ SOURCES += $$PWD/src/main.cpp \
 $$PWD/src/ParticleSystemSSE.cpp \
 $$PWD/src/ParticleSystemSSEFMA.cpp \
 $$PWD/src/ParticleSystemNormal.cpp \
+$$PWD/src/ParticleSystemAOS.cpp \
 $$PWD/src/ParticleSSE.cpp
 INCLUDEPATH+=/public/devel/include/
 LIBS+=-L/public/devel/lib/ -lbenchmark
@@ -30,6 +31,7 @@ HEADERS+=$$PWD/include/ParticleSSE.h \
           $$PWD/include/ParticleSystemSSE.h \
           $$PWD/include/ParticleSystemSSEFMA.h \
           $$PWD/include/ParticleSystemNormal.h \
+          $$PWD/include/ParticleSystemAOS.h \
           $$PWD/include/AlignedArray.h \
           ../include/simd.h
 # and add the include dir into the search path for Qt and make

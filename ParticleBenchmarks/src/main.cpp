@@ -1,6 +1,7 @@
 #include "ParticleSystemSSE.h"
 #include "ParticleSystemSSEFMA.h"
 #include "ParticleSystemNormal.h"
+#include "ParticleSystemAOS.h"
 
 #include <benchmark/benchmark.h>
 
@@ -108,14 +109,52 @@ BENCHMARK_DEFINE_F(ParticleSystemNormalFixture, Render)(benchmark::State& state)
 }
 
 
+class ParticleSystemAOSFixture : public ::benchmark::Fixture
+{
+ public:
+  void SetUp(const ::benchmark::State& st)
+  {
+
+    particles= new ParticleSystemAOS(st.range(0),{0,0,0});
+  }
+
+  void TearDown(const ::benchmark::State&)
+  {
+    delete particles;
+  }
+  ParticleSystemAOS *particles;
+
+};
+
+
+BENCHMARK_DEFINE_F(ParticleSystemAOSFixture, Update)(benchmark::State& state)
+{
+    while (state.KeepRunning())
+    {
+      particles->update(0.01f);
+    }
+}
+
+BENCHMARK_DEFINE_F(ParticleSystemAOSFixture, Render)(benchmark::State& state)
+{
+    while (state.KeepRunning())
+    {
+      particles->render();
+    }
+}
+
+
+
 constexpr int step=10;
 constexpr int rangeStart=1024;
-constexpr int rangeEnd=1<<24;
+constexpr int rangeEnd=1<<1000000; //24;
 BENCHMARK_REGISTER_F(ParticleSystemSSEFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemSSEFMAFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemNormalFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemAOSFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemSSEFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemSSEFMAFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemNormalFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemAOSFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 
 BENCHMARK_MAIN();
