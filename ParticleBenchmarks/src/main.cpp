@@ -110,7 +110,7 @@ BENCHMARK_DEFINE_F(ParticleSystemNormalFixture, Render)(benchmark::State& state)
 
 constexpr int step=10;
 constexpr int rangeStart=1024;
-constexpr int rangeEnd=1<<18;
+constexpr int rangeEnd=1<<24;
 BENCHMARK_REGISTER_F(ParticleSystemSSEFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemSSEFMAFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemNormalFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
