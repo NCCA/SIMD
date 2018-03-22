@@ -1,4 +1,4 @@
-#include "ParticleSystem.h"
+#include "ParticleSystemSSE.h"
 #include <cassert>
 #include <iostream>
 #include <ngl/VAOFactory.h>
@@ -6,27 +6,20 @@
 #include <ngl/NGLStream.h>
 #include <ngl/Random.h>
 #include <vector>
+#include <benchmark/benchmark.h>
 // based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 
-ParticleSystem::ParticleSystem(size_t _numParticles,ngl::Vec3 _pos)
+ParticleSystemSSE::ParticleSystemSSE(size_t _numParticles,ngl::Vec3 _pos)
 {
   m_numParticles=_numParticles;
-  m_particles.reset(new Particle(_numParticles));
+  m_particles.reset(new ParticleSSE(_numParticles));
   m_pos=_pos;
   setDefaults();
-  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
-  m_vao->bind();
-  std::vector<ngl::Vec3> data(_numParticles);
-  m_vao->setData( ngl::SimpleVAO::VertexData(m_numParticles*sizeof(ngl::Vec3),data[0].m_x));
-  // We must do this each time as we change the data.
-  m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
-  m_vao->setNumIndices(m_numParticles);
-  m_vao->unbind();
 
 
 }
 
-ParticleSystem::~ParticleSystem()
+ParticleSystemSSE::~ParticleSystemSSE()
 {
 
 }
@@ -34,7 +27,7 @@ ParticleSystem::~ParticleSystem()
 
 
 
-void ParticleSystem::setDefaults()
+void ParticleSystemSSE::setDefaults()
 {
   size_t i;
   size_t remaining_particles = m_numParticles % 4;
@@ -115,7 +108,7 @@ void ParticleSystem::setDefaults()
 
 }
 
-void ParticleSystem::setNumParticles(size_t _numParticles)
+void ParticleSystemSSE::setNumParticles(size_t _numParticles)
 {
 
 
@@ -123,7 +116,7 @@ void ParticleSystem::setNumParticles(size_t _numParticles)
 
 
 
-void ParticleSystem::update(float _elapsed)
+void ParticleSystemSSE::update(float _elapsed)
 {
   f128 vel_x, vel_y, vel_z;
   f128 frame_time = splat4f(_elapsed);
@@ -245,132 +238,7 @@ void ParticleSystem::update(float _elapsed)
   }
 }
 
-
-void ParticleSystem::updateFMA(float _elapsed)
-{
-  f128 vel_x, vel_y, vel_z;
-  f128 frame_time = splat4f(_elapsed);
-  f128 gravity    = splat4f(s_gravity * _elapsed);
-  const f128 ZERO = zero4f();
-
-
-  for (size_t i = 0; i < m_numParticles; i+=4)
-  {
-    // velocity = velocity + (time * acceleration)
-    vel_x=fmadd4f(frame_time,load4f(&m_particles->m_ax[i]),load4f(&m_particles->m_vx[i]));
-    vel_y=fmadd4f(frame_time,load4f(&m_particles->m_ay[i]),load4f(&m_particles->m_vy[i]));
-    vel_z=fmadd4f(frame_time,load4f(&m_particles->m_az[i]),load4f(&m_particles->m_vz[i]));
-
-    // Y velocity = Y velocity + (gravity * time)
-    vel_y = add4f(vel_y, gravity);
-
-    // p = p + v * t
-    store4f(&m_particles->m_x[i],fmadd4f(vel_x, frame_time,load4f(&m_particles->m_x[i])));
-    store4f(&m_particles->m_y[i],fmadd4f(vel_y, frame_time,load4f(&m_particles->m_y[i])));
-    store4f(&m_particles->m_z[i],fmadd4f(vel_z, frame_time,load4f(&m_particles->m_z[i])));
-
-
-    store4f(&m_particles->m_vx[i], vel_x);
-    store4f(&m_particles->m_vy[i], vel_y);
-    store4f(&m_particles->m_vz[i], vel_z);
-
-    // energy = energy - time
-    store4f(&m_particles->m_energy[i], sub4f(load4f(&m_particles->m_energy[i]), frame_time));
-
-    switch (movemask4f(cmplteq4f(load4f(&m_particles->m_energy[i]), ZERO)))
-    {
-    case 0: // f f f f
-      // do nothing; all 4 particles are alive
-      break;
-    case 1: // f f f t
-      // particle [i] is dead
-      setParticleDefaults(i);
-      break;
-    case 2: // f f t f
-      // particle [i+1] is dead
-      setParticleDefaults(i+1);
-      break;
-    case 3: // f f t t
-      // particles [i] and [i+1] are dead
-      setParticleDefaults(i);
-      setParticleDefaults(i+1);
-      break;
-    case 4: // f t f f
-      // particle [i+2] is dead
-      setParticleDefaults(i+2);
-      break;
-    case 5: // f t f t
-      // particles [i] and [i+2] are dead
-      setParticleDefaults(i);
-      setParticleDefaults(i+2);
-      break;
-    case 6: // f t t f
-      // particles [i+1] and [i+2] are dead
-      setParticleDefaults(i+1);
-      setParticleDefaults(i+2);
-      break;
-    case 7: // f t t t
-      // particles [i] and [i+1] and [i+2] are dead
-      setParticleDefaults(i);
-      setParticleDefaults(i+1);
-      setParticleDefaults(i+2);
-      break;
-    case 8: // t f f f
-      // particle [i+3] is dead
-      setParticleDefaults(i+3);
-      break;
-    case 9: // t f f t
-      // particles [i] and [i+3] are dead
-      setParticleDefaults(i);
-      setParticleDefaults(i+3);
-      break;
-    case 10: // t f t f
-      // particles [i+1] and [i+3] are dead
-      setParticleDefaults(i+1);
-      setParticleDefaults(i+3);
-      break;
-    case 11: // t f t t
-      // particles [i] and [i+1] and [i+3] are dead
-      setParticleDefaults(i);
-      setParticleDefaults(i+1);
-      setParticleDefaults(i+3);
-      break;
-    case 12: // t t f f
-      // particles [i+2] and [i+3] are dead
-      setParticleDefaults(i+2);
-      setParticleDefaults(i+3);
-      break;
-    case 13: // t t f t
-      // particles [i] and [i+2] and [i+3] are dead
-      setParticleDefaults(i);
-      setParticleDefaults(i+2);
-      setParticleDefaults(i+3);
-      break;
-    case 14: // t t t f
-      // particles [i+1] and [i+2] and [i+3] are dead
-      setParticleDefaults(i+1);
-      setParticleDefaults(i+2);
-      setParticleDefaults(i+3);
-      break;
-    case 15: // t t t t
-      // all 4 particles are dead
-      setParticleDefaults(i);
-      setParticleDefaults(i+1);
-      setParticleDefaults(i+2);
-      setParticleDefaults(i+3);
-      break;
-    default:
-      break;
-  }
-
-    // do collision
-    // stretch particles
-    // paritcle has light
-  }
-}
-
-
-void ParticleSystem::setParticleDefaults(size_t particleIndex)
+void ParticleSystemSSE::setParticleDefaults(size_t particleIndex)
 {
   ngl::Random *rng=ngl::Random::instance();
   m_particles->m_x[particleIndex]       = m_pos.m_x;
@@ -390,7 +258,7 @@ void ParticleSystem::setParticleDefaults(size_t particleIndex)
   m_particles->m_alive[particleIndex]   = true;
 }
 
-void ParticleSystem::render()
+void ParticleSystemSSE::render()
 {
 
  f128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
@@ -398,16 +266,19 @@ void ParticleSystem::render()
 
  size_t i = 0;
 
- ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
  // lambda to set the vertex from a register
- auto setVert=[&verts](f128 reg)
+ auto setVert=[](f128 reg)
  {
    ALIGNED(16)float v[4];
    store4f(v, reg);
-   verts->m_x = v[0];
-   verts->m_y = v[1];
-   verts->m_z = v[2];
-   ++verts;
+   benchmark::DoNotOptimize(v[0]);
+   benchmark::DoNotOptimize(v[1]);
+   benchmark::DoNotOptimize(v[2]);
+
+   //verts->m_x = v[0];
+   //verts->m_y = v[1];
+   //verts->m_z = v[2];
+   //++verts;
  };
 
  const f128 ONE = splat4f(1.0f);
@@ -457,7 +328,7 @@ void ParticleSystem::render()
  {
    i -= (4 - remaining_particles);
    // Note use of unaligned loads here as not on boundary!
-   verts -= (4 - remaining_particles);                       //         r3      r2      r1      r0                                                               //       ------------------------------
+   //verts -= (4 - remaining_particles);                       //         r3      r2      r1      r0                                                               //       ------------------------------
    xmm0 = loadu4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
    xmm1 = loadu4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
    xmm2 = loadu4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
@@ -495,15 +366,15 @@ void ParticleSystem::render()
    }
  }
 
-  m_vao->unmapBuffer();
+ // m_vao->unmapBuffer();
   // now render
-  m_vao->bind();
-  m_vao->draw();
-  m_vao->unbind();
+  //m_vao->bind();
+  //m_vao->draw();
+  //m_vao->unbind();
 }
 
 
- void ParticleSystem::updatePosition(float _dx, float _dy, float _dz)
+ void ParticleSystemSSE::updatePosition(float _dx, float _dy, float _dz)
  {
     m_pos.m_x+=_dx;
     m_pos.m_y+=_dy;

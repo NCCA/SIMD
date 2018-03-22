@@ -79,23 +79,16 @@ void NGLScene::loadMatricesToShader(const char *_shader)
   shader->use(_shader);
 
   ngl::Mat4 MVP;
-  const ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,200.0f);
+  const ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,500.0f);
   const ngl::Mat4 view=ngl::lookAt({0,2,2},{0,0,0},{0,1,0});
   shader->setUniform("MVP",projection*view*m_mouseGlobalTX);
-/*  MVP          = m_cam.getVPMatrix() * M;
 
-  normalMatrix = MV;
-  normalMatrix.inverse().transpose();
-  shader->setUniform( "MV", MV );
-  shader->setUniform( "MVP", MVP );
-  shader->setUniform( "normalMatrix", normalMatrix );
-  shader->setUniform( "M", M );
-*/
 }
 
 void NGLScene::paintGL()
 {
   glViewport( 0, 0, m_win.width, m_win.height );
+
   // clear the screen and depth buffer
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
@@ -170,7 +163,7 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
     case Qt::Key_2 : m_pointSize+=1; break;
     case Qt::Key_3 : m_particle->updateEnergy(-0.1f); break;
     case Qt::Key_4 : m_particle->updateEnergy(0.1f); break;
-
+    case Qt::Key_0 : m_fma^=true; break;
     case Qt::Key_Left : m_particle->updatePosition(-0.1f,0,0); break;
     case Qt::Key_Right : m_particle->updatePosition(0.1f,0,0); break;
     case Qt::Key_Up : m_particle->updatePosition(0,0.1f,0); break;
@@ -199,8 +192,12 @@ void NGLScene::timerEvent(QTimerEvent *_event)
       time+=5.0f;
     }
     if(m_animate)
-      m_particle->update(0.01f);
-
+    {
+      if(!m_fma)
+        m_particle->update(0.01f);
+      else
+        m_particle->updateFMA(0.01f);
+    }
   }
   if(_event->timerId() == m_fpsTimer)
     {

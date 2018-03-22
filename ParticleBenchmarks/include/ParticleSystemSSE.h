@@ -1,17 +1,15 @@
-#ifndef PARTICLE_SYSTEM_H_
-#define PARTICLE_SYSTEM_H_
+#ifndef PARTICLE_SYSTEMSSE_H_
+#define PARTICLE_SYSTEMSSE_H_
 // based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
-#include "Particle.h"
+#include "ParticleSSE.h"
 #include <ngl/Vec3.h>
-#include <ngl/AbstractVAO.h>
-class ParticleSystem
+class ParticleSystemSSE
 {
 
   public :
-    ParticleSystem(size_t numParticles,ngl::Vec3 _pos);
-    ~ParticleSystem();
+    ParticleSystemSSE(size_t numParticles,ngl::Vec3 _pos);
+    ~ParticleSystemSSE();
     void update(float _elapsed);
-    void updateFMA(float _elapsed);
     void render();
     void setNumParticles(size_t numParticles);
     void setDefaults();
@@ -25,11 +23,10 @@ class ParticleSystem
   private :
     size_t m_numAlive=0;
     size_t m_numParticles;
-    std::unique_ptr<Particle>  m_particles;
+    std::unique_ptr<ParticleSSE>  m_particles;
 
     ngl::Vec3 m_pos;
     float s_gravity=-9.0f;     /**< Gravity value */
-    std::unique_ptr<ngl::AbstractVAO> m_vao;
     float m_energyRange=1.0f;
 
 

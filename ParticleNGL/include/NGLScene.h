@@ -7,6 +7,7 @@
 #include <ngl/Text.h>
 #include <QOpenGLWindow>
 #include <QTime>
+#include <QSlider>
 #include "ParticleSystem.h"
 //----------------------------------------------------------------------------------------------------------------------
 /// @file NGLScene.h
@@ -110,6 +111,7 @@ private:
   QTime m_timer;
   bool m_circle=false;
   bool m_animate=true;
+  bool m_fma=false;
   GLuint m_texID;
   GLint m_pointSize=2;
 
