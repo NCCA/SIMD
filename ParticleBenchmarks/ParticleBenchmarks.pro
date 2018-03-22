@@ -23,8 +23,8 @@ $$PWD/src/ParticleSystemSSE.cpp \
 $$PWD/src/ParticleSystemSSEFMA.cpp \
 $$PWD/src/ParticleSystemNormal.cpp \
 $$PWD/src/ParticleSSE.cpp
-
-LIBS+=-lbenchmark
+INCLUDEPATH+=/public/devel/include/
+LIBS+=-L/public/devel/lib/ -lbenchmark
 
 HEADERS+=$$PWD/include/ParticleSSE.h \
           $$PWD/include/ParticleSystemSSE.h \

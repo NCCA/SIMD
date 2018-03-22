@@ -3,6 +3,7 @@
 // based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 #include "ParticleSSE.h"
 #include <ngl/Vec3.h>
+#include <memory>
 class ParticleSystemNormal
 {
 
