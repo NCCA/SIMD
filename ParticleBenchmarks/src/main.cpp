@@ -5,156 +5,103 @@
 
 #include <benchmark/benchmark.h>
 
-class ParticleSystemSSEFixture : public ::benchmark::Fixture
+template<typename T>
+class ParticleSystemFixture : public ::benchmark::Fixture
 {
  public:
   void SetUp(const ::benchmark::State& st)
   {
 
-    particles= new ParticleSystemSSE(st.range(0),{0,0,0});
+    particles= new T(st.range(0),{0,0,0});
   }
 
   void TearDown(const ::benchmark::State&)
   {
     delete particles;
   }
-  ParticleSystemSSE *particles;
+  T *particles;
 
 };
 
 
-BENCHMARK_DEFINE_F(ParticleSystemSSEFixture, Update)(benchmark::State& state)
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, AOSUpdate, ParticleSystemAOS)(benchmark::State& st)
 {
-    while (state.KeepRunning())
-    {
-      particles->update(0.01f);
-    }
+ for (auto _ : st)
+ {
+   particles->update(0.01f);
+ }
 }
 
-BENCHMARK_DEFINE_F(ParticleSystemSSEFixture, Render)(benchmark::State& state)
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, AOSRender, ParticleSystemAOS)(benchmark::State& st)
 {
-    while (state.KeepRunning())
-    {
-      particles->render();
-    }
-}
-
-
-class ParticleSystemSSEFMAFixture : public ::benchmark::Fixture
-{
- public:
-  void SetUp(const ::benchmark::State& st)
-  {
-
-    particles= new ParticleSystemSSEFMA(st.range(0),{0,0,0});
-  }
-
-  void TearDown(const ::benchmark::State&)
-  {
-    delete particles;
-  }
-  ParticleSystemSSEFMA *particles;
-
-};
-
-BENCHMARK_DEFINE_F(ParticleSystemSSEFMAFixture, Update)(benchmark::State& state)
-{
-    while (state.KeepRunning())
-    {
-      particles->update(0.01f);
-    }
-}
-
-BENCHMARK_DEFINE_F(ParticleSystemSSEFMAFixture, Render)(benchmark::State& state)
-{
-    while (state.KeepRunning())
-    {
-      particles->render();
-    }
+ for (auto _ : st)
+ {
+   particles->render();
+ }
 }
 
 
-class ParticleSystemNormalFixture : public ::benchmark::Fixture
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, NormalUpdate, ParticleSystemNormal)(benchmark::State& st)
 {
- public:
-  void SetUp(const ::benchmark::State& st)
-  {
-
-    particles= new ParticleSystemNormal(st.range(0),{0,0,0});
-  }
-
-  void TearDown(const ::benchmark::State&)
-  {
-    delete particles;
-  }
-  ParticleSystemNormal *particles;
-
-};
-
-
-BENCHMARK_DEFINE_F(ParticleSystemNormalFixture, Update)(benchmark::State& state)
-{
-    while (state.KeepRunning())
-    {
-      particles->update(0.01f);
-    }
+ for (auto _ : st)
+ {
+   particles->update(0.01f);
+ }
 }
 
-BENCHMARK_DEFINE_F(ParticleSystemNormalFixture, Render)(benchmark::State& state)
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, NormalRender, ParticleSystemNormal)(benchmark::State& st)
 {
-    while (state.KeepRunning())
-    {
-      particles->render();
-    }
+ for (auto _ : st)
+ {
+   particles->render();
+ }
 }
 
 
-class ParticleSystemAOSFixture : public ::benchmark::Fixture
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, SSEUpdate, ParticleSystemSSE)(benchmark::State& st)
 {
- public:
-  void SetUp(const ::benchmark::State& st)
-  {
-
-    particles= new ParticleSystemAOS(st.range(0),{0,0,0});
-  }
-
-  void TearDown(const ::benchmark::State&)
-  {
-    delete particles;
-  }
-  ParticleSystemAOS *particles;
-
-};
-
-
-BENCHMARK_DEFINE_F(ParticleSystemAOSFixture, Update)(benchmark::State& state)
-{
-    while (state.KeepRunning())
-    {
-      particles->update(0.01f);
-    }
+ for (auto _ : st)
+ {
+   particles->update(0.01f);
+ }
 }
 
-BENCHMARK_DEFINE_F(ParticleSystemAOSFixture, Render)(benchmark::State& state)
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, SSERender, ParticleSystemSSE)(benchmark::State& st)
 {
-    while (state.KeepRunning())
-    {
-      particles->render();
-    }
+ for (auto _ : st)
+ {
+   particles->render();
+ }
 }
 
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, SSEFMAUpdate, ParticleSystemSSEFMA)(benchmark::State& st)
+{
+ for (auto _ : st)
+ {
+   particles->update(0.01f);
+ }
+}
 
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, SSEFMARender, ParticleSystemSSEFMA)(benchmark::State& st)
+{
+ for (auto _ : st)
+ {
+   particles->render();
+ }
+}
 
 constexpr int step=10;
 constexpr int rangeStart=1024;
-constexpr int rangeEnd=1<<1000000; //24;
-BENCHMARK_REGISTER_F(ParticleSystemSSEFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemSSEFMAFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemNormalFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemAOSFixture, Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemSSEFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemSSEFMAFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemNormalFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemAOSFixture, Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+constexpr int rangeEnd=1000000; //24;
+
+BENCHMARK_REGISTER_F(ParticleSystemFixture, AOSUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, NormalUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, SSEUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, SSEFMAUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+
+BENCHMARK_REGISTER_F(ParticleSystemFixture, AOSRender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, NormalRender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, SSERender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, SSEFMARender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 
 BENCHMARK_MAIN();
