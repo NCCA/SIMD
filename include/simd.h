@@ -84,6 +84,12 @@ inline f128 loadu4f(const void* const ptr)
   return _mm_loadu_ps(static_cast<const float*>(ptr));
 }
 
+inline f256 loadu8f(const void* const ptr)
+{
+  return _mm256_loadu_ps(static_cast<const float*>(ptr));
+}
+
+
 inline i128 loadu4i(const void* const ptr) 
 { 
   return _mm_loadu_si128(static_cast<const i128*>(ptr));
@@ -131,6 +137,10 @@ inline void store4f(void* const ptr, const f128 reg)
 inline void store8f(void* const ptr, const f256 reg)
 {
   _mm256_store_ps(static_cast<float *>(ptr), reg);
+}
+inline void storeu8f(void* const ptr, const f256 reg)
+{
+  _mm256_storeu_ps(static_cast<float *>(ptr), reg);
 }
 
 inline void store4i(void* const ptr, const i128 reg)
@@ -358,6 +368,7 @@ inline f128 cmpeq1f(const f128 a, f128 b){ return _mm_cmpeq_ss(a,b);}
 inline f128 cmpneq4f(const f128 a, f128 b){ return _mm_cmpneq_ps(a,b);}
 inline f128 cmpneq1f(const f128 a, f128 b){ return _mm_cmpneq_ss(a,b);}
 
+
 inline f128 cmplt4f(const f128 a, f128 b){ return _mm_cmplt_ps(a,b);}
 inline f128 cmplt1f(const f128 a, f128 b){ return _mm_cmplt_ss(a,b);}
 inline f128 cmplteq4f(const f128 a, f128 b){ return _mm_cmple_ps(a,b);}
@@ -370,6 +381,13 @@ inline f128 cmpgteq1f(const f128 a, f128 b){ return _mm_cmpge_ss(a,b);}
 // todo add in the not versions of above at some stage
 
 inline f256 cmpeq8f(const f256 a, const f256 b){  return _mm256_cmp_ps(a,b,_CMP_EQ_OQ);}
+inline f256 cmplt8f(const f256 a, const f256 b){  return _mm256_cmp_ps(a,b,_CMP_LT_OQ);}
+inline f256 cmplteq8f(const f256 a, const f256 b){  return _mm256_cmp_ps(a,b,_CMP_LE_OS);}
+
+inline f256 cmpgt8f(const f256 a, const f256 b){  return _mm256_cmp_ps(a,b,_CMP_GT_OQ);}
+inline f256 cmpgteq8f(const f256 a, const f256 b){  return _mm256_cmp_ps(a,b,_CMP_GE_OS);}
+
+
 
 inline f128 max4f(const f128 a, const f128 b)
 {
@@ -402,8 +420,22 @@ inline f256 permute8f(f256 in, i256 order){ return _mm256_permutevar8x32_ps(in, 
 inline f128 unpackhi4f(f128 a, f128 b) { return _mm_unpackhi_ps(a, b); }
 inline f128 unpacklo4f(f128 a, f128 b) { return _mm_unpacklo_ps(a, b); }
 
+// using a=set8f(1,2,3,4,5,6,7,8) will return [1,2,3,4]
+inline f128 cast8fHi(f256 a)
+{
+  return   _mm256_castps256_ps128(a);
+}
+
+// using a=set8f(1,2,3,4,5,6,7,8) will return [5,6,7,8]
+inline f128 cast8fLow(f256 a)
+{
+  return   _mm256_castps256_ps128(_mm256_permute2f128_ps(a,a,1));
+}
+
+
 #define shuffle4f(a, b, W, Z, Y, X) _mm_shuffle_ps(a, b, _MM_SHUFFLE(W, Z, Y, X))
 
+#define shuffle8f(a, b, W, Z, Y, X) _mm256_shuffle_ps(a, b, _MM_SHUFFLE(W, Z, Y, X))
 
 inline f128 cast4f(const d128 reg) { return _mm_castpd_ps(reg); }
 inline f128 cast4f(const i128 reg) { return _mm_castsi128_ps(reg); }
@@ -417,6 +449,10 @@ inline int32_t movemask16i8(const i128 reg) { return _mm_movemask_epi8(reg); }
 inline int32_t movemask4i(const i128 reg) { return _mm_movemask_ps(cast4f(reg)); }
 inline int32_t movemask4f(const f128 reg) { return _mm_movemask_ps(reg); }
 inline int32_t movemask2d(const d128 reg) { return _mm_movemask_pd(reg); }
+
+
+inline int64_t movemask32i8(const i256 reg) { return _mm256_movemask_epi8(reg); }
+inline int64_t movemask8f(const f256 reg) { return _mm256_movemask_ps(reg); }
 
 
 inline f256 isnegative(const f256 a)

@@ -6,17 +6,23 @@
 #include <ngl/NGLStream.h>
 #include <ngl/Random.h>
 #include <vector>
-#ifdef GOOGLEBENCH
-  #include <benchmark/benchmark.h>
-#endif
 // based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 
 ParticleSystemAOS::ParticleSystemAOS(size_t _numParticles,ngl::Vec3 _pos)
 {
   m_numParticles=_numParticles;
-  m_particles.reset(new Particle[_numParticles]);
+  m_particles.reset(new ParticleAOS[_numParticles]);
   m_pos=_pos;
   setDefaults();
+  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
+  m_vao->bind();
+  std::vector<ngl::Vec3> data(_numParticles);
+  m_vao->setData( ngl::SimpleVAO::VertexData(m_numParticles*sizeof(ngl::Vec3),data[0].m_x));
+  // We must do this each time as we change the data.
+  m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
+  m_vao->setNumIndices(m_numParticles);
+  m_vao->unbind();
+
 
 
 }
@@ -112,27 +118,28 @@ void ParticleSystemAOS::setParticleDefaults(size_t particleIndex)
 
 void ParticleSystemAOS::render()
 {
+  size_t v = 0;
+
+  ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
 
 
 for (size_t  i = 0; i < m_numParticles; i++)
  {
    if (m_particles[i].m_alive)
    {
-    #ifdef GOOGLEBENCH
-       benchmark::DoNotOptimize(m_particles[i].m_x);
-       benchmark::DoNotOptimize(m_particles[i].m_y);
-       benchmark::DoNotOptimize(m_particles[i].m_z);
-    #endif
+     verts[v].m_x=m_particles[i].m_x;
+     verts[v].m_y=m_particles[i].m_y;
+     verts[v].m_z=m_particles[i].m_z;
+     ++v;
    }
  }
+m_vao->unmapBuffer();
+// now render
+m_vao->bind();
+m_vao->draw();
+m_vao->unbind();
+
 }
 
-
- void ParticleSystemAOS::updatePosition(float _dx, float _dy, float _dz)
- {
-    m_pos.m_x+=_dx;
-    m_pos.m_y+=_dy;
-    m_pos.m_z+=_dz;
- }
 
 

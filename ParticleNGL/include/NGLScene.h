@@ -8,7 +8,8 @@
 #include <QOpenGLWindow>
 #include <QTime>
 #include <QSlider>
-#include "ParticleSystem.h"
+#include "AbstractParticleSystem.h"
+#include <chrono>
 //----------------------------------------------------------------------------------------------------------------------
 /// @file NGLScene.h
 /// @brief this class inherits from the Qt OpenGLWindow and allows us to use NGL to draw OpenGL
@@ -97,7 +98,7 @@ private:
 
   void timerEvent(QTimerEvent *_event) override ;
 
-  std::unique_ptr<ParticleSystem> m_particle;
+  std::unique_ptr<AbstractParticleSystem> m_particle;
   /// @brief flag for the fps timer
   int m_fpsTimer;
   int m_particleUpdateTimer;
@@ -114,6 +115,9 @@ private:
   bool m_fma=false;
   GLuint m_texID;
   GLint m_pointSize=2;
+  size_t m_systemType=0;
+  std::chrono::milliseconds  m_updateTime;
+  std::chrono::milliseconds m_renderTime;
 
 };
 

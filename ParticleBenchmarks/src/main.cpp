@@ -2,6 +2,7 @@
 #include "ParticleSystemSSEFMA.h"
 #include "ParticleSystemNormal.h"
 #include "ParticleSystemAOS.h"
+#include "ParticleSystemAVX2.h"
 
 #include <benchmark/benchmark.h>
 
@@ -90,18 +91,37 @@ BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, SSEFMARender, ParticleSystemS
  }
 }
 
+
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, AVX2Update, ParticleSystemAVX2)(benchmark::State& st)
+{
+ for (auto _ : st)
+ {
+   particles->update(0.01f);
+ }
+}
+
+BENCHMARK_TEMPLATE_DEFINE_F(ParticleSystemFixture, AVX2Render, ParticleSystemAVX2)(benchmark::State& st)
+{
+ for (auto _ : st)
+ {
+   particles->render();
+ }
+}
+
 constexpr int step=10;
 constexpr int rangeStart=1024;
 constexpr int rangeEnd=1000000; //24;
 
-BENCHMARK_REGISTER_F(ParticleSystemFixture, AOSUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemFixture, NormalUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemFixture, SSEUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+//BENCHMARK_REGISTER_F(ParticleSystemFixture, AOSUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+//BENCHMARK_REGISTER_F(ParticleSystemFixture, NormalUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+//BENCHMARK_REGISTER_F(ParticleSystemFixture, SSEUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemFixture, SSEFMAUpdate)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, AVX2Update)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 
-BENCHMARK_REGISTER_F(ParticleSystemFixture, AOSRender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemFixture, NormalRender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
-BENCHMARK_REGISTER_F(ParticleSystemFixture, SSERender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+//BENCHMARK_REGISTER_F(ParticleSystemFixture, AOSRender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+//BENCHMARK_REGISTER_F(ParticleSystemFixture, NormalRender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+//BENCHMARK_REGISTER_F(ParticleSystemFixture, SSERender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 BENCHMARK_REGISTER_F(ParticleSystemFixture, SSEFMARender)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
+BENCHMARK_REGISTER_F(ParticleSystemFixture, AVX2Render)->RangeMultiplier(step)->Range(rangeStart,rangeEnd);
 
 BENCHMARK_MAIN();

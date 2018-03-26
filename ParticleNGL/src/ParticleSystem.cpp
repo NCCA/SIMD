@@ -503,11 +503,5 @@ void ParticleSystem::render()
 }
 
 
- void ParticleSystem::updatePosition(float _dx, float _dy, float _dz)
- {
-    m_pos.m_x+=_dx;
-    m_pos.m_y+=_dy;
-    m_pos.m_z+=_dz;
- }
 
 

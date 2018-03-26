@@ -10,8 +10,11 @@
 #include <ngl/ShaderLib.h>
 #include <ngl/VAOPrimitives.h>
 #include <ngl/Texture.h>
-
-
+#include "ParticleSystem.h"
+#include "ParticleSystemAOS.h"
+#include "ParticleSystemNormal.h"
+#include "ParticleSystemAVX2.h"
+#include <chrono>
 NGLScene::NGLScene(size_t _numParticles)
 {
   setTitle( "SIMD Particles" );
@@ -56,7 +59,7 @@ void NGLScene::initializeGL()
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
 
   m_particle.reset(new ParticleSystem(/*16000*64*/m_numParticles,{0,0,0}));
-  m_particleUpdateTimer=startTimer(1);
+  m_particleUpdateTimer=startTimer(0);
   ngl::VAOPrimitives::instance()->createLineGrid("grid",20,20,100);
   m_text.reset(new ngl::Text(QFont("Arial",14)));
   m_text->setScreenSize(width(),height());
@@ -111,12 +114,28 @@ void NGLScene::paintGL()
   glBindTexture(GL_TEXTURE_2D,m_texID);
 
   glPointSize(m_pointSize);
+  auto begin = std::chrono::steady_clock::now();
   m_particle->render();
+  auto end = std::chrono::steady_clock::now();
+  m_renderTime=std::chrono::duration_cast<std::chrono::milliseconds> (end - begin);
 
   loadMatricesToShader(ngl::nglColourShader);
   ngl::VAOPrimitives::instance()->draw("grid");
-  QString text=QString("Total Particles %1 %2 fps").arg(m_numParticles).arg(m_fps);
+  const QString c_systemType[]={
+    "Particle System SOA -> SSE",
+    "Particle System AOS",
+    "Particle System SOA (No SSE)",
+    "Particle System AVX2"
+  };
+  QString text=c_systemType[m_systemType];
+  m_text->renderText(10,20,text);
+  text=QString("Total Particles %1 %2 fps").arg(m_numParticles).arg(m_fps);
   m_text->renderText(10,40,text);
+  text=QString("update time %1ms").arg(m_updateTime.count());
+  m_text->renderText(10,60,text);
+  text=QString("render time %1ms").arg(m_renderTime.count());
+  m_text->renderText(10,80,text);
+
   ++m_frames;
 
 
@@ -161,8 +180,13 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
     case Qt::Key_A : m_animate^=true; break;
     case Qt::Key_1 : m_pointSize-=1; break;
     case Qt::Key_2 : m_pointSize+=1; break;
-    case Qt::Key_3 : m_particle->updateEnergy(-0.1f); break;
-    case Qt::Key_4 : m_particle->updateEnergy(0.1f); break;
+    case Qt::Key_3 : m_particle->updateEnergy(-0.1f);  break;
+    case Qt::Key_4 : m_particle->updateEnergy(0.1f);  break;
+    case Qt::Key_5 :   m_particle.reset(new ParticleSystem(m_numParticles,{0,0,0})); m_systemType=0; break;
+    case Qt::Key_6 :   m_particle.reset(new ParticleSystemAOS(m_numParticles,{0,0,0})); m_systemType=1;break;
+    case Qt::Key_7 :   m_particle.reset(new ParticleSystemNormal(m_numParticles,{0,0,0})); m_systemType=2;break;
+    case Qt::Key_8 :   m_particle.reset(new ParticleSystemAVX2(m_numParticles,{0,0,0})); m_systemType=3;break;
+
     case Qt::Key_0 : m_fma^=true; break;
     case Qt::Key_Left : m_particle->updatePosition(-0.1f,0,0); break;
     case Qt::Key_Right : m_particle->updatePosition(0.1f,0,0); break;
@@ -193,10 +217,10 @@ void NGLScene::timerEvent(QTimerEvent *_event)
     }
     if(m_animate)
     {
-      if(!m_fma)
-        m_particle->update(0.01f);
-      else
-        m_particle->updateFMA(0.01f);
+      auto begin = std::chrono::steady_clock::now();
+      m_particle->update(0.01f);
+      auto end = std::chrono::steady_clock::now();
+      m_updateTime=std::chrono::duration_cast<std::chrono::milliseconds> (end - begin);
     }
   }
   if(_event->timerId() == m_fpsTimer)

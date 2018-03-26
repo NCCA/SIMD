@@ -10,6 +10,7 @@ isEqual(QT_MAJOR_VERSION, 5) {
 	cache()
 	DEFINES +=QT5BUILD
 }
+DEFINES+=GOOGLEBENCH
 # where to put moc auto generated files
 MOC_DIR=moc
 # on a mac we don't create a .app bundle file ( for ease of multiplatform use)
@@ -21,6 +22,7 @@ QMAKE_CXXFLAGS += -mfma -mavx2 -mf16c -m64 -O3 -ffast-math
 SOURCES += $$PWD/src/main.cpp \
 $$PWD/src/ParticleSystemSSE.cpp \
 $$PWD/src/ParticleSystemSSEFMA.cpp \
+$$PWD/src/ParticleSystemAVX2.cpp \
 $$PWD/src/ParticleSystemNormal.cpp \
 $$PWD/src/ParticleSystemAOS.cpp \
 $$PWD/src/ParticleSSE.cpp
@@ -30,6 +32,7 @@ LIBS+=-L/public/devel/lib/ -lbenchmark
 HEADERS+=$$PWD/include/ParticleSSE.h \
           $$PWD/include/ParticleSystemSSE.h \
           $$PWD/include/ParticleSystemSSEFMA.h \
+          $$PWD/include/ParticleSystemAVX2.h \
           $$PWD/include/ParticleSystemNormal.h \
           $$PWD/include/ParticleSystemAOS.h \
           $$PWD/include/AlignedArray.h \

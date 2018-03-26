@@ -20,6 +20,9 @@ QMAKE_CXXFLAGS += -mfma -mavx2 -mf16c -m64 -O3 -ffast-math
 # same for the .h files
 SOURCES += $$PWD/src/main.cpp \
 $$PWD/src/ParticleSystem.cpp \
+$$PWD/src/ParticleSystemAOS.cpp \
+$$PWD/src/ParticleSystemNormal.cpp \
+$$PWD/src/ParticleSystemAVX2.cpp \
 $$PWD/src/NGLSceneMouseControls.cpp \
 $$PWD/src/NGLScene.cpp \
 $$PWD/src/Particle.cpp
@@ -30,7 +33,11 @@ HEADERS+= $$PWD/include/NGLScene.h \
           $$PWD/include/WindowParams.h \
 					$$PWD/include/Particle.h \
 					$$PWD/include/ParticleSystem.h \
-					$$PWD/include/AlignedArray.h \
+          $$PWD/include/ParticleSystemAOS.h \
+          $$PWD/include/ParticleSystemNormal.h \
+          $$PWD/include/ParticleSystemAVX2.h \
+          $$PWD/include/AlignedArray.h \
+          $$PWD/include/AbstractParticleSystem.h \
           ../include/simd.h
 # and add the include dir into the search path for Qt and make
 INCLUDEPATH+=./include

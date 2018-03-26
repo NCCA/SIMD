@@ -6,7 +6,9 @@
 #include <ngl/NGLStream.h>
 #include <ngl/Random.h>
 #include <vector>
-#include <benchmark/benchmark.h>
+#ifdef GOOGLEBENCH
+  #include <benchmark/benchmark.h>
+#endif
 // based on code from here https://software.intel.com/en-us/articles/creating-a-particle-system-with-streaming-simd-extensions
 
 ParticleSystemSSE::ParticleSystemSSE(size_t _numParticles,ngl::Vec3 _pos)
@@ -271,10 +273,11 @@ void ParticleSystemSSE::render()
  {
    ALIGNED(16)float v[4];
    store4f(v, reg);
-   benchmark::DoNotOptimize(v[0]);
-   benchmark::DoNotOptimize(v[1]);
-   benchmark::DoNotOptimize(v[2]);
-
+   #ifdef GOOGLEBENCH
+    benchmark::DoNotOptimize(v[0]);
+    benchmark::DoNotOptimize(v[1]);
+    benchmark::DoNotOptimize(v[2]);
+  #endif
    //verts->m_x = v[0];
    //verts->m_y = v[1];
    //verts->m_z = v[2];
