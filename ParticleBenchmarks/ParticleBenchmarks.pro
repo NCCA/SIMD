@@ -22,16 +22,19 @@ QMAKE_CXXFLAGS += -mfma -mavx2 -mf16c -m64 -O3 -ffast-math
 SOURCES += $$PWD/src/main.cpp \
 $$PWD/src/ParticleSystemSSE.cpp \
 $$PWD/src/ParticleSystemSSEFMA.cpp \
+$$PWD/src/ParticleSystemSSERand.cpp \
 $$PWD/src/ParticleSystemAVX2.cpp \
 $$PWD/src/ParticleSystemNormal.cpp \
 $$PWD/src/ParticleSystemAOS.cpp \
-$$PWD/src/ParticleSSE.cpp
+$$PWD/src/ParticleSSE.cpp \
+$$PWD/src/random.cpp
 INCLUDEPATH+=/public/devel/include/
 LIBS+=-L/public/devel/lib/ -lbenchmark
 
 HEADERS+=$$PWD/include/ParticleSSE.h \
           $$PWD/include/ParticleSystemSSE.h \
           $$PWD/include/ParticleSystemSSEFMA.h \
+          $$PWD/include/ParticleSystemSSERand.h \
           $$PWD/include/ParticleSystemAVX2.h \
           $$PWD/include/ParticleSystemNormal.h \
           $$PWD/include/ParticleSystemAOS.h \
