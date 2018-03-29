@@ -14,6 +14,7 @@
 #include "ParticleSystemAOS.h"
 #include "ParticleSystemNormal.h"
 #include "ParticleSystemAVX2.h"
+#include "ParticleSystemSSERand.h"
 #include <chrono>
 NGLScene::NGLScene(size_t _numParticles)
 {
@@ -58,7 +59,7 @@ void NGLScene::initializeGL()
   // grab an instance of shader manager
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
 
-  m_particle.reset(new ParticleSystem(/*16000*64*/m_numParticles,{0,0,0}));
+  m_particle.reset(new ParticleSystemSSERAND(/*16000*64*/m_numParticles,{0,0,0}));
   m_particleUpdateTimer=startTimer(0);
   ngl::VAOPrimitives::instance()->createLineGrid("grid",20,20,100);
   m_text.reset(new ngl::Text(QFont("Arial",14)));
@@ -125,7 +126,8 @@ void NGLScene::paintGL()
     "Particle System SOA -> SSE",
     "Particle System AOS",
     "Particle System SOA (No SSE)",
-    "Particle System AVX2"
+    "Particle System AVX2",
+    "Particle System SSE-Random"
   };
   QString text=c_systemType[m_systemType];
   m_text->renderText(10,20,text);
@@ -186,6 +188,7 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
     case Qt::Key_6 :   m_particle.reset(new ParticleSystemAOS(m_numParticles,{0,0,0})); m_systemType=1;break;
     case Qt::Key_7 :   m_particle.reset(new ParticleSystemNormal(m_numParticles,{0,0,0})); m_systemType=2;break;
     case Qt::Key_8 :   m_particle.reset(new ParticleSystemAVX2(m_numParticles,{0,0,0})); m_systemType=3;break;
+    case Qt::Key_9 :   m_particle.reset(new ParticleSystemSSERAND(m_numParticles,{0,0,0})); m_systemType=4;break;
 
     case Qt::Key_0 : m_fma^=true; break;
     case Qt::Key_Left : m_particle->updatePosition(-0.1f,0,0); break;

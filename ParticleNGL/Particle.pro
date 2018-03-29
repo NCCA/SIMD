@@ -23,9 +23,11 @@ $$PWD/src/ParticleSystem.cpp \
 $$PWD/src/ParticleSystemAOS.cpp \
 $$PWD/src/ParticleSystemNormal.cpp \
 $$PWD/src/ParticleSystemAVX2.cpp \
+$$PWD/src/ParticleSystemSSERand.cpp \
 $$PWD/src/NGLSceneMouseControls.cpp \
 $$PWD/src/NGLScene.cpp \
-$$PWD/src/Particle.cpp
+$$PWD/src/Particle.cpp \
+$$PWD/src/random.cpp
 
 
 
@@ -34,9 +36,11 @@ HEADERS+= $$PWD/include/NGLScene.h \
 					$$PWD/include/Particle.h \
 					$$PWD/include/ParticleSystem.h \
           $$PWD/include/ParticleSystemAOS.h \
+          $$PWD/include/ParticleSystemSSERand.h \
           $$PWD/include/ParticleSystemNormal.h \
           $$PWD/include/ParticleSystemAVX2.h \
           $$PWD/include/AlignedArray.h \
+          $$PWD/include/random.h \
           $$PWD/include/AbstractParticleSystem.h \
           ../include/simd.h
 # and add the include dir into the search path for Qt and make

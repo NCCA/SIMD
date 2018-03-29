@@ -115,7 +115,7 @@ private:
   bool m_fma=false;
   GLuint m_texID;
   GLint m_pointSize=2;
-  size_t m_systemType=0;
+  size_t m_systemType=4;
   std::chrono::milliseconds  m_updateTime;
   std::chrono::milliseconds m_renderTime;
 
