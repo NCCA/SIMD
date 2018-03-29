@@ -13,3 +13,4 @@ macx:CONFIG-=app_bundle
 CONFIG+=c++11
 QMAKE_CXXFLAGS += -mfma -mavx2 -m64 -mf16c -O3
 
+DEFINES+=UNITTESTS

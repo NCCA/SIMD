@@ -62,6 +62,8 @@ uint32_t randomFast()
 
 
 
+
+
 // 0-1 random number
 float randomFloat()
 {
@@ -113,10 +115,61 @@ float uniformFloat()
 }
 
 
+/* Generate gaussian deviate with mean 0 and stdev 1 */
+f128 uniformFloatSSE()
+{
+/* f128 x, y, r;
+ const f128 TWO=splat4f(2.0f);
+ const f128 MINUSTWO=splat4f(2.0f);
+ const f128 ONE=splat4f(1.0f);
+ do
+ {
+   x=fnmsub4f(TWO,randomFloatSSE(),ONE);
+   y=fnmsub4f(TWO,randomFloatSSE(),ONE);
+   r=add4f(mul4f(x,x),mul4f(y,y));
+ }while (r == 0.0f || r >= 1.0f);
+// r = sqrtf((-2.0f * log(r)) / r);
+// r=sqrt4f(mul4f(MINUSTWO,log4f(r)))
+
+ r=sqrt4f();
+ return mul4f(x ,r);
+*/
+}
+
+
 float randomFloat(float min, float max) 
 {
    return  (max - min) * ((((float) randomFast()) / (float) UINT32_MAX)) + min ;
 }
+
+
+// These are for unit tests only so we can control the seed values
+// when we run an SSE random we do 4 at a time and update a vec4 seed
+// here we replicate it by passing in our own seed rather than using the
+// global one.
+#ifdef UNITTESTS
+uint32_t randomFast(uint32_t _state)
+{
+  /* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
+  uint32_t x = _state;
+  x ^= x << 13;
+  x ^= x >> 17;
+  x ^= x << 5;
+  return x;
+}
+
+// 0-1 random number
+float randomFloat(uint32_t _state)
+{
+  float x;
+  unsigned int a;
+  auto r=randomFast(_state);
+  a = r >> 9; // Take upper 23 bits
+  *((unsigned int *)&x) = a | 0x3F800000; // Make a float from bits
+  return x-1.0F;
+}
+
+#endif
 
 };
 

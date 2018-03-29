@@ -17,7 +17,11 @@ namespace frng // fast rng code
   extern f128 randomFloatSSE();
   extern void setSeedSSE(uint32_t s);
   extern f128 randomFloatSSE(float min, float max);
-
+  extern f128 uniformFloatSSE();
+  #ifdef UNITTESTS
+    uint32_t randomFast(uint32_t _state);
+    extern float randomFloat(uint32_t _state);
+  #endif
 };
 
 

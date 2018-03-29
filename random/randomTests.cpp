@@ -15,23 +15,7 @@ TEST(RANDOM,SetSeed)
 }
 
 
-TEST(RANDOMSSE,TableSEE)
-{
-  frng::setSeedSSE(99);
-  frng::setSeed(99);
-  for(int i=0; i<10; ++i)
-  {
-    std::cout<<"R "<<frng::randomFast()<<'\n';
-  }
-  i128 rn;
-  alignas(16) uint32_t res[4];
-  for(int i=0; i<10; ++i)
-  {
-    rn=frng::randomSSE();
-    store4i(&res[0],rn);
-    std::cout<<"S "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
-  }
-}
+
 
 // When using SSE we are going to only have the same value in the first
 // register as the seeds are different in each block however we
@@ -40,18 +24,15 @@ TEST(RANDOMSSE,TableSEE)
 TEST(RANDOMSSE,SetSeedSEE)
 {
   frng::setSeedSSE(99);
-  frng::setSeed(99);
   i128 rn=frng::randomSSE();
   alignas(16) uint32_t res[4];
   store4i(&res[0],rn);
+  // Note randomFast with param is a unit test only function
+  ASSERT_EQ(res[0],frng::randomFast(99));
+  ASSERT_EQ(res[1],frng::randomFast(100));
+  ASSERT_EQ(res[2],frng::randomFast(101));
+  ASSERT_EQ(res[3],frng::randomFast(102));
 
-  std::cout<<"randomFast() "<<frng::randomFast()<<" S "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
-  ASSERT_EQ(res[0],25193669);
-
-  rn=frng::randomSSE();
-  store4i(&res[0],rn);
-  std::cout<<"randomFast() "<<frng::randomFast()<<" S "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
-  ASSERT_EQ(res[0],2399245289);
 
 }
 
@@ -92,15 +73,15 @@ TEST(RANDOMSSE,loopRandSeed)
 TEST(RANDOMSSE,randFloat)
 {
   frng::setSeedSSE(99);
-  frng::setSeed(99);
-  float fr=frng::randomFloat();
-  std::cout<<"random Float "<<fr<<'\n';
 
   float res[4];
   auto rn=frng::randomFloatSSE();
   store4f(&res[0],rn);
   std::cout<<"SSE ["<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<"]\n";
-  ASSERT_FLOAT_EQ(res[0],fr);
+  ASSERT_FLOAT_EQ(res[0],frng::randomFloat(99));
+  ASSERT_FLOAT_EQ(res[1],frng::randomFloat(100));
+  ASSERT_FLOAT_EQ(res[2],frng::randomFloat(101));
+  ASSERT_FLOAT_EQ(res[3],frng::randomFloat(102));
 
 }
 
@@ -116,7 +97,7 @@ TEST(RANDOMSSE,randFloatRange)
   auto rn=frng::randomFloatSSE(-2.0f,2.0f);
   store4f(&res[0],rn);
   std::cout<<"SSE ["<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<"]\n";
-  ASSERT_NEAR(res[0],fr,0.001);
+  ASSERT_NEAR(res[0],fr,0.001f);
 }
 
 TEST(RANDOMSSE,randFloatLoop)
