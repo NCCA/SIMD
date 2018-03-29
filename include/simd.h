@@ -67,7 +67,7 @@ inline d128 set2d(const double _a, const double _b)
 {
   return _mm_setr_pd(_a, _b); 
 }
-// spat will set single values
+// splat will set single values
 inline f128 splat4f(float f) { return _mm_set1_ps(f); }
 inline d128 splat2d(double f) { return _mm_set1_pd(f); }
 inline i128 splat4i(int32_t f) { return _mm_set1_epi32(f); }
@@ -114,6 +114,9 @@ inline i128 load4i(const void* const ptr)
 { 
   return _mm_load_si128(static_cast<const i128*>(ptr));
 }
+
+
+
 inline d128 load2d(const void* const ptr) 
 { 
   return _mm_load_pd(static_cast<const double*>(ptr));
@@ -405,11 +408,15 @@ inline f128 andnot4f(const f128 a, const f128 b) { return _mm_andnot_ps(a,b); }
 inline f128 or4f(const f128 a, const f128 b) { return _mm_or_ps(a,b); }
 inline f128 xor4f(const f128 a, const f128 b) { return _mm_xor_ps(a,b); }
 
+inline i128 xor4i(const i128 a, const i128 b) { return _mm_xor_si128(a,b); }
+
+
 inline f256 and8f(const f256 a, const f256 b) { return _mm256_and_ps(a, b); }
 inline f256 andnot8f(const f256 a, const f256 b) { return _mm256_andnot_ps(a, b); }
 inline f256 or8f(const f256 a, const f256 b) { return _mm256_or_ps(a, b); }
 inline f256 xor8f(const f256 a, const f256 b) { return _mm256_xor_ps(a, b); }
-
+#define shiftBitsLeft4i32(reg, count) _mm_slli_epi32(reg, count)
+#define shiftBitsRight4i32(reg, count) _mm_srli_epi32(reg, count)
 // packing
 
 // return [a0, b0, a2, b2, a4, b4, a6, b6]

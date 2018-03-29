@@ -9,10 +9,9 @@ float stdrandomFloat(float min, float max)
 
 static void XORRand(benchmark::State& state)
 {
-  using namespace frng;
   for (auto _ : state)
   {
-    auto a=xorshift32();
+    auto a=frng::randomFast();
   }
 }
 
@@ -66,6 +65,16 @@ static void UniformFloat(benchmark::State& state)
   }
 }
 
+static void RandomSSE(benchmark::State& state)
+{
+  using namespace frng;
+
+  for (auto _ : state)
+  {
+    auto a=randomSSE();
+  }
+}
+
 
 // Register the function as a benchmark
 BENCHMARK(XORRand);
@@ -74,6 +83,7 @@ BENCHMARK(RandFloat);
 BENCHMARK(RandFloatRange);
 BENCHMARK(StdRandFloatRange);
 BENCHMARK(UniformFloat);
+BENCHMARK(RandomSSE);
 
 
 BENCHMARK_MAIN();

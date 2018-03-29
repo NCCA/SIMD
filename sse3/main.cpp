@@ -52,7 +52,7 @@ TEST(SSE3,setr_ps)
   // again best not too
   float *r = reinterpret_cast<float*>(&a);
 
-  std::cout<<"restult "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
+  std::cout<<"result "<<r[0]<<' '<<r[1]<<' '<<r[2]<<' '<<r[3]<<'\n';
   // Note order of data (due to the (r)everse function )
   ASSERT_FLOAT_EQ(r[0],1.0f);
   ASSERT_FLOAT_EQ(r[1],2.0f);
@@ -91,7 +91,6 @@ TEST(SSE3,_mm_set1_ps)
   ASSERT_FLOAT_EQ(r[3],0.9991f);
 
 }
-
 
 
 
@@ -335,6 +334,31 @@ TEST(SSE3,_mm_min_ps)
   ASSERT_FLOAT_EQ(r[3],3.0f);
 }
 
+
+TEST(SSE3Integer,_mm_setr_epi32)
+{
+  __m128i a=_mm_setr_epi32(1,2,3,4);
+  alignas(16) int res[4];
+  _mm_store_si128((__m128i*)&res[0],a);
+  std::cout<<"result "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
+  ASSERT_EQ(res[0],1);
+  ASSERT_EQ(res[1],2);
+  ASSERT_EQ(res[2],3);
+  ASSERT_EQ(res[3],4);
+}
+
+TEST(SSE3Integer,_mm_set1_epi32)
+{
+   __m128i a=_mm_set1_epi32(99);
+  alignas(16) int32_t res[4];
+  _mm_store_si128((__m128i*)&res[0],a);
+  std::cout<<"result "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
+  ASSERT_EQ(res[0],99);
+  ASSERT_EQ(res[1],99);
+  ASSERT_EQ(res[2],99);
+  ASSERT_EQ(res[3],99);
+  
+}
 
 int main(int argc, char **argv)
 {

@@ -1,18 +1,56 @@
 #include "random.h"
-
+#include <iostream>
 namespace frng // fast rng code
 {
 
 
 static uint32_t g_state=1;
+static i128 g_stateSSE;
 
 void setSeed(uint32_t s)
 {
   g_state=s;
 }
 
+void setSeedSSE(uint32_t s)
+{
+  uint32_t state[4];
+  state[0]=s+0;
+  state[1]=s+1;
+  state[2]=s+2;
+  state[3]=s+3;
+
+  g_stateSSE=load4i(&state[0]);
+}
+
+
+void debug(i128 _r)
+{
+  int a[4];
+  store4i(a,_r);
+  std::cout<<"u128 "<<a[0]<<' '<<a[1]<<' '<<a[2]<<' '<<a[3]<<'\n';
+}
+
+i128 randomSSE()
+{
+  /*
+  uint32_t x = g_state;
+  x ^= x << 13;
+  x ^= x >> 17;
+  x ^= x << 5;
+  g_state = x;
+  */
+  i128 x=g_stateSSE;
+  x=xor4i(x,shiftBitsLeft4i32(x,13));
+  x=xor4i(x,shiftBitsRight4i32(x,17));
+  x=xor4i(x,shiftBitsLeft4i32(x,5));
+
+  g_stateSSE=x;
+  return x;
+}
+
 // simple XOR shift based on https://en.wikipedia.org/wiki/Xorshift
-uint32_t xorshift32()
+uint32_t randomFast()
 {
 	/* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
 	uint32_t x = g_state;
@@ -23,12 +61,14 @@ uint32_t xorshift32()
 	return x;
 }
 
+
+
 // 0-1 random number
 float randomFloat()
 {
   float x;
   unsigned int a;
-  a = xorshift32() >> 9; /* Take upper 23 bits */
+  a = random() >> 9; /* Take upper 23 bits */
   *((unsigned int *)&x) = a | 0x3F800000; /* Make a float from bits*/
   return x-1.0F;
 }
@@ -51,7 +91,7 @@ float uniformFloat()
 
 float randomFloat(float min, float max) 
 {
-   return  (max - min) * ((((float) xorshift32()) / (float) UINT32_MAX)) + min ;
+   return  (max - min) * ((((float) randomFast()) / (float) UINT32_MAX)) + min ;
 }
 
 };

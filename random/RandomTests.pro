@@ -1,8 +1,10 @@
-TARGET=SSE4Test
+TARGET=RandomTests
 QMAKE_CXX=/usr/bin/g++
 CONFIG-=qt
-SOURCES+=main.cpp
-HEADERS+= ../include/simd.h
+SOURCES+=$$PWD/random.cpp \
+         $$PWD/randomTests.cpp
+HEADERS+= ../include/simd.h \
+          $$PWD/random.h
 LIBS+=-L/public/devel/lib -L/usr/local/lib -lgtest -lpthread
 INCLUDEPATH+=/public/devel/include
 INCLUDEPATH+=/usr/local/include

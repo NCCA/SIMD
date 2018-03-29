@@ -1,5 +1,5 @@
 # This specifies the exe name
-TARGET=Random
+TARGET=RandomBenchmark
 # where to put the .o files
 OBJECTS_DIR=obj
 # core Qt Libs to use add more here if needed.
