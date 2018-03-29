@@ -412,24 +412,24 @@ void ParticleSystem::render()
 
  const f128 ONE = splat4f(1.0f);
 
-
  for (i = 0; i < m_numParticles - remaining_particles; i+=4)
  {
-   xmm0 = load4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
-   xmm1 = load4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
-   xmm2 = load4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
-   xmm3 = ONE;                                   // xmm3:   1.0     1.0     1.0     1.0
+   // extract the data which is in SOA format x[] y[] z[] and put it into
+   // Vec3 format x,y,z
+   xmm0 = load4f(&m_particles->m_x[i]);   // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
+   xmm1 = load4f(&m_particles->m_y[i]);   // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
+   xmm2 = load4f(&m_particles->m_z[i]);   // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
+   xmm3 = ONE;                            // xmm3:   1.0     1.0     1.0     1.0
 
-   xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
-   xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
-   xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
-   xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
+   xmm4 = unpacklo4f(xmm0, xmm1);         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
+   xmm6 = unpackhi4f(xmm0, xmm1);         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
+   xmm5 = unpacklo4f(xmm2, xmm3);         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
+   xmm7 = unpackhi4f(xmm2, xmm3);         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
 
    xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
    xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
    xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
    xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
-
    if (m_particles->m_alive[i])
    {
      setVert(xmm0);
@@ -457,16 +457,16 @@ void ParticleSystem::render()
  {
    i -= (4 - remaining_particles);
    // Note use of unaligned loads here as not on boundary!
-   verts -= (4 - remaining_particles);                       //         r3      r2      r1      r0                                                               //       ------------------------------
-   xmm0 = loadu4f(&m_particles->m_x[i]);                     // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
-   xmm1 = loadu4f(&m_particles->m_y[i]);                     // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
-   xmm2 = loadu4f(&m_particles->m_z[i]);                     // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
-   xmm3 = ONE;                                              // xmm3:   1.0     1.0     1.0     1.0
+   verts -= (4 - remaining_particles);      //         r3      r2      r1      r0                                                               //       ------------------------------
+   xmm0 = loadu4f(&m_particles->m_x[i]);    // xmm0: x[i+3]  x[i+2]  x[i+1]  x[ i ]
+   xmm1 = loadu4f(&m_particles->m_y[i]);    // xmm1: y[i+3]  y[i+2]  y[i+1]  y[ i ]
+   xmm2 = loadu4f(&m_particles->m_z[i]);    // xmm2: z[i+3]  z[i+2]  z[i+1]  z[ i ]
+   xmm3 = ONE;                              // xmm3:   1.0     1.0     1.0     1.0
 
-   xmm4 = unpacklo4f(xmm0, xmm1);                         // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
-   xmm6 = unpackhi4f(xmm0, xmm1);                         // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
-   xmm5 = unpacklo4f(xmm2, xmm3);                         // xmm5:   1.0   z[i+1]    1.0   z[ i ]
-   xmm7 = unpackhi4f(xmm2, xmm3);                         // xmm7:   1.0   z[i+3]    1.0   z[i+2]
+   xmm4 = unpacklo4f(xmm0, xmm1);           // xmm4: y[i+1]  x[i+1]  y[ i ]  x[ i ]
+   xmm6 = unpackhi4f(xmm0, xmm1);           // xmm6: y[i+3]  x[i+3]  y[i+2]  x[i+2]
+   xmm5 = unpacklo4f(xmm2, xmm3);           // xmm5:   1.0   z[i+1]    1.0   z[ i ]
+   xmm7 = unpackhi4f(xmm2, xmm3);           // xmm7:   1.0   z[i+3]    1.0   z[i+2]
 
    xmm0 = shuffle4f(xmm4, xmm5, 1, 0, 1, 0); // xmm0:   1.0   z[ i ]  y[ i ]  x[ i ]
    xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
