@@ -48,7 +48,7 @@ TEST(SSE4,loadu4f)
 
 TEST(SSE4,load4f)
 {
-  float data[]={1.0f, 2.0f, 3.0f, 4.0f};
+  alignas(16) float data[]={1.0f, 2.0f, 3.0f, 4.0f};
   f128 a=load4f(&data[0]);
   testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
 }
@@ -146,7 +146,7 @@ TEST(SSE4,dot4f)
   // create a 3 float vector with last component 0
   f128 a=set4f(1.0f, 2.0f, 3.0f, 0.0f);
 
-  float length=convertf32(sqrt1f(dot4f<117>(a, a )));
+  float length=convertf32(sqrt1f(dot4f<0x75>(a, a )));
 
   std::cout<<"length is "<<length<<'\n';
   EXPECT_NEAR(length,3.7416f,0.001f);

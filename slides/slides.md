@@ -784,7 +784,9 @@ __m128 res = _mm_div_ss(a,b); // divide lowest pass through rest
 
 ## ```_mm_rcpps_ps```
 - 1/x for each vector component (also ss variant)
-
+- It is important to note these are approximations (and change per CPU / Implementation)
+- Generally prefer division (normalising vertex normals may be ok with rsqrt, but normalising a ray within a ray tracer probably wouldn't be ok). 
+- clang will replace divps with rcpps [newton raphson iteration](https://en.wikipedia.org/wiki/Newton%27s_method).
 ```c++
 TEST(SSE3,_mm_rcpps_ps)
 {
@@ -1001,11 +1003,11 @@ inline void storeu2d(void* const ptr, const d128 reg)
 --
 
 ## load[u]4f
-
+- note the use of [alignas](http://en.cppreference.com/w/cpp/language/alignas) in the example.
 ```c++
 TEST(SSE4,loadu4f)
 {
-  float data[]={1.0f, 2.0f, 3.0f, 4.0f};
+  alignas(16) float data[]={1.0f, 2.0f, 3.0f, 4.0f};
   f128 a=loadu4f(&data[0]);
   // Note Ordering
   testAndReport4f(a,{{1.0f},{2.0f},{3.0f},{4.0f}});
@@ -1293,7 +1295,7 @@ TEST(SSE4,dot4f)
   // create a 3 float vector with last component 0
   f128 a=set4f(1.0f, 2.0f, 3.0f, 0.0f);
 
-  float length=convertf32(sqrt1f(dot4f<117>(a, a )));
+  float length=convertf32(sqrt1f(dot4f<0x75>(a, a )));
 
   std::cout<<"length is "<<length<<'\n';
   EXPECT_NEAR(length,3.7416f,0.001f);
