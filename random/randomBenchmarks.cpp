@@ -75,6 +75,26 @@ static void RandomSSE(benchmark::State& state)
   }
 }
 
+static void RandomFloatSSE(benchmark::State& state)
+{
+  using namespace frng;
+
+  for (auto _ : state)
+  {
+    auto a=randomFloatSSE();
+  }
+}
+
+static void RandomFloatSSERange(benchmark::State& state)
+{
+  using namespace frng;
+
+  for (auto _ : state)
+  {
+    auto a=randomFloatSSE(-2.0f,2.0f);
+  }
+}
+
 
 // Register the function as a benchmark
 BENCHMARK(XORRand);
@@ -84,6 +104,8 @@ BENCHMARK(RandFloatRange);
 BENCHMARK(StdRandFloatRange);
 BENCHMARK(UniformFloat);
 BENCHMARK(RandomSSE);
+BENCHMARK(RandomFloatSSE);
+BENCHMARK(RandomFloatSSERange);
 
 
 BENCHMARK_MAIN();

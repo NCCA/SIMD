@@ -36,6 +36,7 @@ TEST(RANDOMSSE,TableSEE)
 // When using SSE we are going to only have the same value in the first
 // register as the seeds are different in each block however we
 // should get the same results in res[0] -> randomFast()
+
 TEST(RANDOMSSE,SetSeedSEE)
 {
   frng::setSeedSSE(99);
@@ -53,6 +54,7 @@ TEST(RANDOMSSE,SetSeedSEE)
   ASSERT_EQ(res[0],2399245289);
 
 }
+
 
 TEST(RANDOMSSE,loopRand)
 {
@@ -85,6 +87,93 @@ TEST(RANDOMSSE,loopRandSeed)
   }
 
 }
+
+
+TEST(RANDOMSSE,randFloat)
+{
+  frng::setSeedSSE(99);
+  frng::setSeed(99);
+  float fr=frng::randomFloat();
+  std::cout<<"random Float "<<fr<<'\n';
+
+  float res[4];
+  auto rn=frng::randomFloatSSE();
+  store4f(&res[0],rn);
+  std::cout<<"SSE ["<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<"]\n";
+  ASSERT_FLOAT_EQ(res[0],fr);
+
+}
+
+
+TEST(RANDOMSSE,randFloatRange)
+{
+  frng::setSeedSSE(99);
+  frng::setSeed(99);
+  float fr=frng::randomFloat(-2.0f,2.0f);
+  std::cout<<"random Float "<<fr<<'\n';
+
+  float res[4];
+  auto rn=frng::randomFloatSSE(-2.0f,2.0f);
+  store4f(&res[0],rn);
+  std::cout<<"SSE ["<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<"]\n";
+  ASSERT_NEAR(res[0],fr,0.001);
+}
+
+TEST(RANDOMSSE,randFloatLoop)
+{
+  frng::setSeedSSE(99);
+  frng::setSeed(99);
+  float res[4];
+  for(size_t i=0; i<500000; ++i)
+  {
+    auto rn=frng::randomFloatSSE();
+    store4f(&res[0],rn);
+    ASSERT_FLOAT_EQ(res[0],frng::randomFloat());
+  }
+}
+
+TEST(RANDOMSSE,randFloatLoopSeed)
+{
+  float res[4];
+  for(size_t i=0; i<500000; ++i)
+  {
+    frng::setSeedSSE(i);
+    frng::setSeed(i);
+    auto rn=frng::randomFloatSSE();
+    store4f(&res[0],rn);
+    ASSERT_FLOAT_EQ(res[0],frng::randomFloat());
+  }
+}
+
+
+
+TEST(RANDOMSSE,randFloatLoopRange)
+{
+  frng::setSeedSSE(99);
+  frng::setSeed(99);
+  float res[4];
+  for(size_t i=0; i<500000; ++i)
+  {
+    auto rn=frng::randomFloatSSE(-2.0f,2.0f);
+    store4f(&res[0],rn);
+    ASSERT_NEAR(res[0],frng::randomFloat(-2.0f,2.0f),0.001f);
+  }
+}
+
+TEST(RANDOMSSE,randFloatLoopSeedRange)
+{
+  float res[4];
+  for(size_t i=0; i<500000; ++i)
+  {
+    frng::setSeedSSE(i);
+    frng::setSeed(i);
+    auto rn=frng::randomFloatSSE(-2.0f,2.0f);
+    store4f(&res[0],rn);
+    ASSERT_NEAR(res[0],frng::randomFloat(-2.0f,2.0f),0.001f);
+  }
+}
+
+
 
 int main(int argc, char **argv)
 {

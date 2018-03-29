@@ -26,25 +26,24 @@ void setSeedSSE(uint32_t s)
 
 void debug(i128 _r)
 {
-  int a[4];
-  store4i(a,_r);
+  alignas(16) uint32_t a[4];
+  store4i(&a[0],_r);
   std::cout<<"u128 "<<a[0]<<' '<<a[1]<<' '<<a[2]<<' '<<a[3]<<'\n';
+}
+
+void debug(f128 _r)
+{
+  alignas(16) float a[4];
+  store4f(&a[0],_r);
+  std::cout<<"f128 "<<a[0]<<' '<<a[1]<<' '<<a[2]<<' '<<a[3]<<'\n';
 }
 
 i128 randomSSE()
 {
-  /*
-  uint32_t x = g_state;
-  x ^= x << 13;
-  x ^= x >> 17;
-  x ^= x << 5;
-  g_state = x;
-  */
   i128 x=g_stateSSE;
   x=xor4i(x,shiftBitsLeft4i32(x,13));
   x=xor4i(x,shiftBitsRight4i32(x,17));
   x=xor4i(x,shiftBitsLeft4i32(x,5));
-
   g_stateSSE=x;
   return x;
 }
@@ -68,9 +67,34 @@ float randomFloat()
 {
   float x;
   unsigned int a;
-  a = random() >> 9; /* Take upper 23 bits */
-  *((unsigned int *)&x) = a | 0x3F800000; /* Make a float from bits*/
+  auto r=randomFast();
+  a = r >> 9; // Take upper 23 bits
+  *((unsigned int *)&x) = a | 0x3F800000; // Make a float from bits
   return x-1.0F;
+}
+
+
+f128 randomFloatSSE()
+{
+  f128 x;
+  const i128 mask=splat4i(0x3F800000);
+  const f128 ONE=splat4f(1.0f);
+  i128 a=shiftBitsRight4i32(randomSSE(),9);
+  x=   or4f (a,mask);
+  return sub4f(x,ONE);
+}
+
+
+f128 randomFloatSSE(float min, float max)
+{
+  const f128 Min=splat4f(min);
+  const f128 Max=splat4f(max);
+  f128 dist=sub4f(Max,Min);
+
+  return fmadd4f(dist,randomFloatSSE(),Min);
+
+
+
 }
 
 /* Generate gaussian deviate with mean 0 and stdev 1 */
