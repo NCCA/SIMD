@@ -1,4 +1,4 @@
-#include "ParticleSystemSSERAND.h"
+#include "ParticleSystemSSERand.h"
 #include <cassert>
 #include <iostream>
 #include <ngl/VAOFactory.h>
@@ -48,10 +48,10 @@ void ParticleSystemSSERAND::setDefaults()
     store4f(&m_particles->m_y[i], startY);
     store4f(&m_particles->m_z[i], startZ);
 
-    store4f(&m_particles->m_vx[i], frng::randomFloatSSE() );
+    store4f(&m_particles->m_vx[i], frng::uniformFloatSSE() );
     store4f(&m_particles->m_vy[i], splat4f(4.0f));
 
-    store4f(&m_particles->m_vz[i], frng::randomFloatSSE());
+    store4f(&m_particles->m_vz[i], frng::uniformFloatSSE());
 
     store4f(&m_particles->m_ax[i],frng::randomFloatSSE(-1.0,1.0f));
     store4f(&m_particles->m_ay[i],frng::randomFloatSSE(-1.0f,0.0f));
@@ -76,9 +76,9 @@ void ParticleSystemSSERAND::setDefaults()
     storeu4f(&m_particles->m_vy[i], frng::randomFloatSSE(0.0f,4.0f));
     storeu4f(&m_particles->m_vz[i], frng::randomFloatSSE(-1.0f,1.0f));
 
-    storeu4f(&m_particles->m_ax[i], frng::randomFloatSSE());
+    storeu4f(&m_particles->m_ax[i], frng::uniformFloatSSE());
     storeu4f(&m_particles->m_ay[i], frng::randomFloatSSE(-1.0f,0.0f));
-    storeu4f(&m_particles->m_az[i], frng::randomFloatSSE());
+    storeu4f(&m_particles->m_az[i], frng::uniformFloatSSE());
 
     storeu4f(&m_particles->m_energy[i],frng::randomFloatSSE(0.0f,m_energyRange));
 
@@ -354,9 +354,9 @@ void ParticleSystemSSERAND::setParticleDefaults(size_t particleIndex)
   m_particles->m_vy[particleIndex]      = frng::randomFloat() * 6.0f + 4.0f;
   m_particles->m_vz[particleIndex]      = frng::randomFloat(-1.0f,1.0f);
 
-  m_particles->m_ax[particleIndex]      = frng::randomFloat();
-  m_particles->m_ay[particleIndex]      = -frng::randomFloat();
-  m_particles->m_az[particleIndex]      = frng::randomFloat();
+  m_particles->m_ax[particleIndex]      = frng::uniformFloat();
+  m_particles->m_ay[particleIndex]      = -frng::uniformFloat();
+  m_particles->m_az[particleIndex]      = frng::uniformFloat();
 
   m_particles->m_energy[particleIndex]  = frng::randomFloat(0.0f,m_energyRange);
 

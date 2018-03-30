@@ -360,8 +360,14 @@ inline f128 dot4f(const f128 a, const f128 b)
   return _mm_dp_ps(a, b, mask);
 }
 
+
+
+//inline f128 getmant16f(const f128 a){ return _ (a); }
+
 // comparisons
 inline i128 cmpeq4i(const i128 a, const i128 b) { return _mm_cmpeq_epi32(a, b); }
+inline i128 cmplt4i(const i128 a, const i128 b) { return _mm_cmplt_epi32(a, b); }
+inline i128 cmpgt4i(const i128 a, const i128 b) { return _mm_cmpgt_epi32(a, b); }
 inline i128 cmpeq16i8(const i128 a, const i128 b) { return _mm_cmpeq_epi8(a, b); }
 inline i128 cmplt16i8(const i128 a, const i128 b) { return _mm_cmplt_epi8(a, b); }
 inline i128 cmpgt16i8(const i128 a, const i128 b) { return _mm_cmpgt_epi8(a, b); }
@@ -409,6 +415,7 @@ inline f128 or4f(const f128 a, const f128 b) { return _mm_or_ps(a,b); }
 inline f128 xor4f(const f128 a, const f128 b) { return _mm_xor_ps(a,b); }
 
 inline i128 xor4i(const i128 a, const i128 b) { return _mm_xor_si128(a,b); }
+inline i128 and4i(const i128 a, const i128 b) { return _mm_and_si128(a,b); }
 
 
 inline f256 and8f(const f256 a, const f256 b) { return _mm256_and_ps(a, b); }
