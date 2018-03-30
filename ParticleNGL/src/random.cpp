@@ -61,9 +61,92 @@ uint32_t randomFast()
 	return x;
 }
 
+/* Implementation of a 32-bit KISS generator which uses no multiply instructions */
+static uint32_t g_kiss32x=123456789;
+static uint32_t g_kiss32y=234567891;
+static uint32_t g_kiss32z=345678912;
+static uint32_t g_kiss32w=456789123;
+static uint32_t g_kiss32c=0;
+
+uint32_t jkiss32()
+{
+ int32_t t;
+ g_kiss32y ^= (g_kiss32y<<5);
+ g_kiss32y ^= (g_kiss32y>>7);
+ g_kiss32y ^= (g_kiss32y<<22);
+ t = g_kiss32z+g_kiss32w+g_kiss32c;
+ g_kiss32z = g_kiss32w;
+ g_kiss32c = t < 0;
+ g_kiss32w = t&2147483647;
+ g_kiss32x += 1411392427;
+ return g_kiss32x + g_kiss32y + g_kiss32w;
+}
+
+float jkissFloat()
+{
+  float x;
+  uint32_t a;
+  a = jkiss32() >> 9; // Take upper 23 bits
+  *((unsigned int *)&x) = a | 0x3F800000; // Make a float from bits
+  return x-1.0F;
+}
+
+float jkissFloat(float min, float max)
+{
+   return  (max - min) * ((((float) jkissFloat()))) + min ;
+}
 
 
 
+static i128 g_kiss4ix;
+static i128 g_kiss4iy;
+static i128 g_kiss4iz;
+static i128 g_kiss4iw;
+static i128 g_kiss4ic;
+
+void seedJkiss4i(int32_t x, int32_t y,int32_t z,int32_t w, int32_t c)
+{
+  g_kiss4ix=set4i(x,x+1,x+2,x+3);
+  g_kiss4iy=set4i(y,y+1,y+2,y+3);
+  g_kiss4iz=set4i(z,z+1,z+2,z+3);
+  g_kiss4iw=set4i(w,w+1,w+2,w+3);
+  g_kiss4ic=set4i(c,c+1,c+2,c+3);
+}
+
+
+i128 jkiss4i()
+{
+  i128 ZERO=splat4i(0);
+  i128 t;
+  g_kiss4iy=xor4i( g_kiss4iy,shiftBitsLeft4i32( g_kiss4iy,5));
+  g_kiss4iy=xor4i( g_kiss4iy,shiftBitsRight4i32( g_kiss4iy,7));
+  g_kiss4iy=xor4i( g_kiss4iy,shiftBitsLeft4i32( g_kiss4iy,22));
+  t=add4i(g_kiss4ic,add4i(g_kiss4iz,g_kiss4iw));
+  g_kiss4iz=g_kiss4iw;
+  g_kiss4ic=cmplt4i(t,ZERO);
+  g_kiss4iw=and4i(t,splat4i(2147483647));
+  g_kiss4ix=add4i(g_kiss4ix,splat4i(1411392427));
+  return add4i(g_kiss4ix,add4i(g_kiss4iy,g_kiss4iw));
+}
+
+f128 jkiss4f()
+{
+  const i128 mask=splat4i(0x3F800000);
+  const f128 ONE=splat4f(1.0f);
+  f128 x;
+  i128 a=shiftBitsRight4i32( jkiss4i() , 9); // Take upper 23 bits
+  x=   or4f (a,mask);
+  return sub4f(x,ONE);
+
+}
+
+f128 jkiss4f(float min, float max)
+{
+  const f128 Min=splat4f(min);
+  const f128 Max=splat4f(max);
+  f128 dist=sub4f(Max,Min);
+  return fmadd4f(dist,jkiss4f(),Min);
+}
 
 // 0-1 random number
 float randomFloat()
@@ -99,21 +182,9 @@ f128 randomFloatSSE(float min, float max)
 
 
 }
-// see http://www0.cs.ucl.ac.uk/staff/d.jones/GoodPracticeRNG.pdf
+
 /* Generate gaussian deviate with mean 0 and stdev 1 */
-
-//double gaussrnd()
-//{
-// double x, y, r;
-// do {
-// x = 2.0 * uni_dblflt() - 1.0;
-// y = 2.0 * uni_dblflt() - 1.0;
-// r = x * x + y * y;
-// } while (r == 0.0 || r >= 1.0);
-// r = sqrt((-2.0 * log(r)) / r);
-// return x * r;
-//}
-
+// see http://www0.cs.ucl.ac.uk/staff/d.jones/GoodPracticeRNG.pdf
 float uniformFloat()
 {
  float x, y, r;
@@ -122,7 +193,8 @@ float uniformFloat()
   x = 2.0f * randomFloat() - 1.0f;
   y = 2.0f * randomFloat() - 1.0f;
   r = x * x + y * y;
- }while (r == 0.0f || r >= 1.0f);
+ }
+ while (r == 0.0f || r >= 1.0f);
  r = sqrtf((-2.0f * log(r)) / r);
  return x * r;
 }

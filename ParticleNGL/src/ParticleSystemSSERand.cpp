@@ -23,7 +23,7 @@ ParticleSystemSSERAND::ParticleSystemSSERAND(size_t _numParticles,ngl::Vec3 _pos
   m_vao->setNumIndices(m_numParticles);
   m_vao->unbind();
   frng::setSeedSSE(123);
-
+  frng::seedJkiss4i();
 }
 
 ParticleSystemSSERAND::~ParticleSystemSSERAND()
@@ -48,16 +48,16 @@ void ParticleSystemSSERAND::setDefaults()
     store4f(&m_particles->m_y[i], startY);
     store4f(&m_particles->m_z[i], startZ);
 
-    store4f(&m_particles->m_vx[i], frng::uniformFloatSSE() );
+    store4f(&m_particles->m_vx[i], frng::jkiss4f() );
     store4f(&m_particles->m_vy[i], splat4f(4.0f));
 
-    store4f(&m_particles->m_vz[i], frng::uniformFloatSSE());
+    store4f(&m_particles->m_vz[i], frng::jkiss4f());
 
-    store4f(&m_particles->m_ax[i],frng::randomFloatSSE(-1.0,1.0f));
-    store4f(&m_particles->m_ay[i],frng::randomFloatSSE(-1.0f,0.0f));
-    store4f(&m_particles->m_az[i],frng::randomFloatSSE(-1.0f,1.0f));
+    store4f(&m_particles->m_ax[i],frng::jkiss4f(-1.0,1.0f));
+    store4f(&m_particles->m_ay[i],frng::jkiss4f(-1.0f,0.0f));
+    store4f(&m_particles->m_az[i],frng::jkiss4f(-1.0f,1.0f));
 
-    store4f(&m_particles->m_energy[ i ],frng::randomFloatSSE(0.0f,m_energyRange));
+    store4f(&m_particles->m_energy[ i ],frng::jkiss4f(0.0f,m_energyRange));
     m_particles->m_alive[ i ] = true;
     m_particles->m_alive[i+1] = true;
     m_particles->m_alive[i+2] = true;
@@ -72,15 +72,15 @@ void ParticleSystemSSERAND::setDefaults()
     storeu4f(&m_particles->m_y[i], startY);
     storeu4f(&m_particles->m_z[i], startZ);
 
-    storeu4f(&m_particles->m_vx[i], frng::randomFloatSSE(-1.0f,1.0f));
-    storeu4f(&m_particles->m_vy[i], frng::randomFloatSSE(0.0f,4.0f));
-    storeu4f(&m_particles->m_vz[i], frng::randomFloatSSE(-1.0f,1.0f));
+    storeu4f(&m_particles->m_vx[i], frng::jkiss4f(-1.0f,1.0f));
+    storeu4f(&m_particles->m_vy[i], frng::jkiss4f(0.0f,4.0f));
+    storeu4f(&m_particles->m_vz[i], frng::jkiss4f(-1.0f,1.0f));
 
-    storeu4f(&m_particles->m_ax[i], frng::uniformFloatSSE());
-    storeu4f(&m_particles->m_ay[i], frng::randomFloatSSE(-1.0f,0.0f));
-    storeu4f(&m_particles->m_az[i], frng::uniformFloatSSE());
+    storeu4f(&m_particles->m_ax[i], frng::jkiss4f());
+    storeu4f(&m_particles->m_ay[i], frng::jkiss4f(-1.0f,0.0f));
+    storeu4f(&m_particles->m_az[i], frng::jkiss4f());
 
-    storeu4f(&m_particles->m_energy[i],frng::randomFloatSSE(0.0f,m_energyRange));
+    storeu4f(&m_particles->m_energy[i],frng::jkiss4f(0.0f,m_energyRange));
 
     m_particles->m_alive[ i ] = true;
     m_particles->m_alive[i+1] = true;
@@ -350,15 +350,15 @@ void ParticleSystemSSERAND::setParticleDefaults(size_t particleIndex)
   m_particles->m_x[particleIndex]       = m_pos.m_x;
   m_particles->m_y[particleIndex]       = m_pos.m_y;
   m_particles->m_z[particleIndex]       = m_pos.m_z;
-  m_particles->m_vx[particleIndex]      = frng::randomFloat(-1.0f,1.0f);
-  m_particles->m_vy[particleIndex]      = frng::randomFloat() * 6.0f + 4.0f;
-  m_particles->m_vz[particleIndex]      = frng::randomFloat(-1.0f,1.0f);
+  m_particles->m_vx[particleIndex]      = frng::jkissFloat(-1.0f,1.0f);
+  m_particles->m_vy[particleIndex]      = frng::jkissFloat() * 6.0f + 4.0f;
+  m_particles->m_vz[particleIndex]      = frng::jkissFloat(-1.0f,1.0f);
 
-  m_particles->m_ax[particleIndex]      = frng::uniformFloat();
-  m_particles->m_ay[particleIndex]      = -frng::uniformFloat();
-  m_particles->m_az[particleIndex]      = frng::uniformFloat();
+  m_particles->m_ax[particleIndex]      = frng::jkissFloat();
+  m_particles->m_ay[particleIndex]      = -frng::jkissFloat();
+  m_particles->m_az[particleIndex]      = frng::jkissFloat();
 
-  m_particles->m_energy[particleIndex]  = frng::randomFloat(0.0f,m_energyRange);
+  m_particles->m_energy[particleIndex]  = frng::jkissFloat(0.0f,m_energyRange);
 
   m_particles->m_alive[particleIndex]   = true;
 }

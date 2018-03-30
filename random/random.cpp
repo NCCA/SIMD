@@ -82,6 +82,15 @@ uint32_t jkiss32()
  return g_kiss32x + g_kiss32y + g_kiss32w;
 }
 
+float jkissFloat()
+{
+  float x;
+  unsigned int a;
+  a = jkiss32() >> 9; // Take upper 23 bits
+  *((unsigned int *)&x) = a | 0x3F800000; // Make a float from bits
+  return x-1.0F;
+}
+
 static i128 g_kiss4ix;
 static i128 g_kiss4iy;
 static i128 g_kiss4iz;
@@ -97,18 +106,7 @@ void seedJkiss4i(int32_t x, int32_t y,int32_t z,int32_t w, int32_t c)
   g_kiss4ic=set4i(c,c+1,c+2,c+3);
 }
 
-/*
-int32_t t;
-g_kiss32y ^= (g_kiss32y<<5);
-g_kiss32y ^= (g_kiss32y>>7);
-g_kiss32y ^= (g_kiss32y<<22);
-t = g_kiss32z+g_kiss32w+g_kiss32c;
-g_kiss32z = g_kiss32w;
-g_kiss32c = t < 0;
-g_kiss32w = t&2147483647;
-g_kiss32x += 1411392427;
-return g_kiss32x + g_kiss32y + g_kiss32w;
-*/
+
 i128 jkiss4i()
 {
   i128 ZERO=splat4i(0);
@@ -124,6 +122,24 @@ i128 jkiss4i()
   return add4i(g_kiss4ix,add4i(g_kiss4iy,g_kiss4iw));
 }
 
+f128 jkiss4f()
+{
+  const i128 mask=splat4i(0x3F800000);
+  const f128 ONE=splat4f(1.0f);
+  f128 x;
+  i128 a=shiftBitsRight4i32( jkiss4i() , 9); // Take upper 23 bits
+  x=   or4f (a,mask);
+  return sub4f(x,ONE);
+
+}
+
+f128 jkiss4f(float min, float max)
+{
+  const f128 Min=splat4f(min);
+  const f128 Max=splat4f(max);
+  f128 dist=sub4f(Max,Min);
+  return fmadd4f(dist,jkiss4f(),Min);
+}
 
 // 0-1 random number
 float randomFloat()
@@ -136,6 +152,10 @@ float randomFloat()
   return x-1.0F;
 }
 
+float jkissFloat(float min, float max)
+{
+   return  (max - min) * ((((float) jkissFloat()) )) + min;
+}
 
 f128 randomFloatSSE()
 {

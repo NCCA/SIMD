@@ -33,6 +33,7 @@ int main(int argc, char** argv)
   format.setProfile(QSurfaceFormat::CoreProfile);
   // now set the depth buffer to 24 bits
   format.setDepthBufferSize(24);
+  format.setSwapInterval(0);
   // set that as the default format for all windows
   QSurfaceFormat::setDefaultFormat(format);
   size_t numParticles=1000000;

@@ -23,6 +23,11 @@ namespace frng // fast rng code
   extern void seedJkiss4i(int32_t x=123456789, int32_t y=234567891,int32_t z=345678912,
                    int32_t w=456789123, int32_t c=0);
 
+  extern float jkissFloat();
+  extern float jkissFloat(float min, float max);
+  extern f128 jkiss4f();
+  extern f128 jkiss4f(float min, float max);
+
 
   #ifdef UNITTESTS
     uint32_t randomFast(uint32_t _state);

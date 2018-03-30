@@ -286,6 +286,64 @@ TEST(RANDOM,jkiss32)
 }
 
 
+TEST(RANDOM,jkissfloatBounds)
+{
+  frng::seedJkiss4i();
+  for(size_t i=0; i<100000; ++i)
+  {
+      auto f32=frng::jkissFloat();
+      //std::cout<<"jkissFloat "<<f32<<'\n';
+      ASSERT_TRUE(f32>=0.0f && f32<=1.0f);
+  }
+}
+
+TEST(RANDOM,jkissfloatBoundsRange)
+{
+  for(size_t i=0; i<100000; ++i)
+  {
+      auto f32=frng::jkissFloat(-1.0f,1.0f);
+      std::cout<<"jkissFloat "<<f32<<'\n';
+      ASSERT_TRUE(f32>=-1.0f && f32<=1.0f);
+  }
+}
+
+
+TEST(RANDOM,jkiss4f)
+{
+
+  frng::seedJkiss4i();
+  float res[4];
+  for(size_t i=0; i<10000; ++i)
+  {
+     f128 r=frng::jkiss4f();
+     store4f(&res[0],r);
+     //std::cout<<"jkiss4f "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
+     ASSERT_TRUE(res[0]>=0.0f && res[0]<=1.0f);
+     ASSERT_TRUE(res[1]>=0.0f && res[1]<=1.0f);
+     ASSERT_TRUE(res[2]>=0.0f && res[2]<=1.0f);
+     ASSERT_TRUE(res[3]>=0.0f && res[3]<=1.0f);
+  }
+
+}
+
+TEST(RANDOM,jkiss4frange)
+{
+
+  frng::seedJkiss4i();
+  float res[4];
+  for(size_t i=0; i<10000; ++i)
+  {
+     f128 r=frng::jkiss4f(-10.0f,10.0f);
+     store4f(&res[0],r);
+     std::cout<<"jkiss4f "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
+     ASSERT_TRUE(res[0]>=-10.0f && res[0]<=10.0f);
+     ASSERT_TRUE(res[1]>=-10.0f && res[1]<=10.0f);
+     ASSERT_TRUE(res[2]>=-10.0f && res[2]<=10.0f);
+     ASSERT_TRUE(res[3]>=-10.0f && res[3]<=10.0f);
+  }
+
+}
+
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
