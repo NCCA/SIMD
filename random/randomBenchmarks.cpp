@@ -95,6 +95,25 @@ static void RandomFloatSSERange(benchmark::State& state)
   }
 }
 
+static void InitSSEUrand(benchmark::State& state)
+{
+  using namespace frng;
+
+  for (auto _ : state)
+  {
+    initKissSSEUrand();
+  }
+}
+static void InitKiss32Urand(benchmark::State& state)
+{
+  using namespace frng;
+
+  for (auto _ : state)
+  {
+    initKiss32Urand();
+  }
+}
+
 
 // Register the function as a benchmark
 BENCHMARK(XORRand);
@@ -106,6 +125,7 @@ BENCHMARK(UniformFloat);
 BENCHMARK(RandomSSE);
 BENCHMARK(RandomFloatSSE);
 BENCHMARK(RandomFloatSSERange);
-
+BENCHMARK(InitSSEUrand);
+BENCHMARK(InitKiss32Urand);
 
 BENCHMARK_MAIN();

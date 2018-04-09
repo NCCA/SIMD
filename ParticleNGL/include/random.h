@@ -28,6 +28,8 @@ namespace frng // fast rng code
 
   extern f128 jkiss4f();
   extern f128 jkiss4f(float min, float max);
+  extern void initKiss32Urand();
+  extern void initKissSSEUrand();
 
 
   #ifdef UNITTESTS

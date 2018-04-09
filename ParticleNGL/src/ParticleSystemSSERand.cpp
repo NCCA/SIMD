@@ -11,6 +11,8 @@
 ParticleSystemSSERAND::ParticleSystemSSERAND(size_t _numParticles,ngl::Vec3 _pos)
 {
   m_numParticles=_numParticles;
+  frng::initKissSSEUrand();
+
   m_particles.reset(new Particle(_numParticles));
   m_pos=_pos;
   setDefaults();
@@ -22,8 +24,8 @@ ParticleSystemSSERAND::ParticleSystemSSERAND(size_t _numParticles,ngl::Vec3 _pos
   m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);
   m_vao->setNumIndices(m_numParticles);
   m_vao->unbind();
-  frng::setSeedSSE(123);
-  frng::seedJkiss4i();
+  //frng::setSeedSSE(123);
+  //frng::seedJkiss4i();
 }
 
 ParticleSystemSSERAND::~ParticleSystemSSERAND()

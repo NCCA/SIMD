@@ -1,6 +1,7 @@
 #include "random.h"
 #include <iostream>
 #include <cmath>
+#include <fcntl.h>
 namespace frng // fast rng code
 {
 
@@ -319,6 +320,49 @@ f128 uniformFloatSSE()
 float randomFloat(float min, float max) 
 {
    return  (max - min) * ((((float) randomFast()) / (float) UINT32_MAX)) + min ;
+}
+
+
+uint32_t devrand(void)
+{
+ int fn;
+ unsigned int r;
+ fn = open("/dev/urandom", O_RDONLY);
+ if (fn == -1)
+ {
+   exit(EXIT_FAILURE); /* Failed! */
+ }
+ if (read(fn, &r, 4) != 4)
+ {
+   exit(EXIT_FAILURE); /* Failed! */
+ }
+ close(fn);
+ return r;
+}
+
+/* Initialise KISS generator using /dev/urandom */
+void initKiss32Urand()
+{
+ g_kiss32x = devrand();
+ while (!(g_kiss32y = devrand())); /* y must not be zero! */
+ g_kiss32z = devrand();
+ /* We don’t really need to set c as well but let's anyway… */
+ /* NOTE: offset c by 1 to avoid z=c=0 */
+ g_kiss32c = devrand() % 698769068 + 1; /* Should be less than 698769069 */
+}
+
+void initKissSSEUrand()
+{
+  g_kiss4ix=set4i(devrand(),devrand(),devrand(),devrand());
+  uint32_t a,b,c,d;
+  while (!(a = devrand()) && !(b = devrand()) && !(c = devrand()) && !(d = devrand())); /* y must not be zero! */
+
+  g_kiss4iy=set4i(a,b,c,d);
+  g_kiss4iz=set4i(devrand(),devrand(),devrand(),devrand());
+  g_kiss4iw=set4i(devrand(),devrand(),devrand(),devrand());
+  g_kiss4ic=set4i(devrand() % 698769068 + 1,devrand() % 698769068 + 1,
+                  devrand() % 698769068 + 1,devrand() % 698769068 + 1);
+
 }
 
 
