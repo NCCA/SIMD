@@ -273,12 +273,12 @@ TEST(RANDOMSSE,exponentf)
 
 TEST(RANDOM,jkiss32)
 {
-  frng::seedJkiss4i();
+  frng::setSeed4i();
   uint32_t res[4];
   for(size_t i=0; i<10; ++i)
   {
-    auto r=frng::jkiss4i();
-    auto r32=frng::jkiss32();
+    auto r=frng::rand4i();
+    auto r32=frng::rand1i();
     store4i(&res[0],r);
     std::cout<<"jkist32 "<<r32<<" jkiss4i "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
     ASSERT_FLOAT_EQ(r32,res[0]);
@@ -288,10 +288,10 @@ TEST(RANDOM,jkiss32)
 
 TEST(RANDOM,jkissfloatBounds)
 {
-  frng::seedJkiss4i();
+  frng::setSeed4i();
   for(size_t i=0; i<100000; ++i)
   {
-      auto f32=frng::jkissFloat();
+      auto f32=frng::rand1f();
       //std::cout<<"jkissFloat "<<f32<<'\n';
       ASSERT_TRUE(f32>=0.0f && f32<=1.0f);
   }
@@ -301,7 +301,7 @@ TEST(RANDOM,jkissfloatBoundsRange)
 {
   for(size_t i=0; i<100000; ++i)
   {
-      auto f32=frng::jkissFloat(-1.0f,1.0f);
+      auto f32=frng::rand1f(-1.0f,1.0f);
       std::cout<<"jkissFloat "<<f32<<'\n';
       ASSERT_TRUE(f32>=-1.0f && f32<=1.0f);
   }
@@ -311,11 +311,11 @@ TEST(RANDOM,jkissfloatBoundsRange)
 TEST(RANDOM,jkiss4f)
 {
 
-  frng::seedJkiss4i();
+  frng::setSeed4i();
   float res[4];
   for(size_t i=0; i<10000; ++i)
   {
-     f128 r=frng::jkiss4f();
+     f128 r=frng::rand4f();
      store4f(&res[0],r);
      //std::cout<<"jkiss4f "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
      ASSERT_TRUE(res[0]>=0.0f && res[0]<=1.0f);
@@ -329,11 +329,11 @@ TEST(RANDOM,jkiss4f)
 TEST(RANDOM,jkiss4frange)
 {
 
-  frng::seedJkiss4i();
+  frng::setSeed4i();
   float res[4];
   for(size_t i=0; i<10000; ++i)
   {
-     f128 r=frng::jkiss4f(-10.0f,10.0f);
+     f128 r=frng::rand4f(-10.0f,10.0f);
      store4f(&res[0],r);
      std::cout<<"jkiss4f "<<res[0]<<' '<<res[1]<<' '<<res[2]<<' '<<res[3]<<'\n';
      ASSERT_TRUE(res[0]>=-10.0f && res[0]<=10.0f);
