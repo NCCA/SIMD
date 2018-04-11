@@ -10,12 +10,16 @@
 #include <ngl/ShaderLib.h>
 #include <ngl/VAOPrimitives.h>
 #include <ngl/Texture.h>
+#include <ngl/Random.h>
 #include "ParticleSystem.h"
 #include "ParticleSystemAOS.h"
 #include "ParticleSystemNormal.h"
 #include "ParticleSystemAVX2.h"
 #include "ParticleSystemSSERand.h"
 #include <chrono>
+#include "imgui.h"
+#include "QtImGui.h"
+
 NGLScene::NGLScene(size_t _numParticles)
 {
   setTitle( "SIMD Particles" );
@@ -24,6 +28,9 @@ NGLScene::NGLScene(size_t _numParticles)
   m_frames=0;
   m_numParticles=_numParticles;
   m_timer.start();
+  m_updateTimes.resize(200);
+  m_renderTimes.resize(200);
+  connect(this,SIGNAL(changeSystem(int)),this,SLOT(updateSystem(int)));
 
 }
 
@@ -48,6 +55,7 @@ void NGLScene::initializeGL()
   // we must call that first before any other GL commands to load and link the
   // gl commands from the lib, if that is not done program will crash
   ngl::NGLInit::instance();
+
   glClearColor( 0.4f, 0.4f, 0.4f, 1.0f ); // Grey Background
   // enable depth testing for drawing
   glEnable( GL_DEPTH_TEST );
@@ -59,7 +67,7 @@ void NGLScene::initializeGL()
   // grab an instance of shader manager
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
 
-  m_particle.reset(new ParticleSystemSSERAND(/*16000*64*/m_numParticles,{0,0,0}));
+  m_particle.reset(new ParticleSystemSSERAND(m_numParticles,{0,0,0}));
   m_particleUpdateTimer=startTimer(0);
   ngl::VAOPrimitives::instance()->createLineGrid("grid",20,20,100);
   m_text.reset(new ngl::Text(QFont("Arial",14)));
@@ -73,7 +81,7 @@ void NGLScene::initializeGL()
   ngl::Texture t("textures/texture.png");
   m_texID=t.setTextureGL();
 
-
+  QtImGui::initialize(this);
 }
 
 
@@ -85,6 +93,9 @@ void NGLScene::loadMatricesToShader(const char *_shader)
   ngl::Mat4 MVP;
   const ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,500.0f);
   const ngl::Mat4 view=ngl::lookAt({0,2,2},{0,0,0},{0,1,0});
+  // top
+  //  const ngl::Mat4 view=ngl::lookAt({0,4,0},{0,0,0},{0,0,1});
+
   shader->setUniform("MVP",projection*view*m_mouseGlobalTX);
 
 }
@@ -92,10 +103,8 @@ void NGLScene::loadMatricesToShader(const char *_shader)
 void NGLScene::paintGL()
 {
   glViewport( 0, 0, m_win.width, m_win.height );
-
   // clear the screen and depth buffer
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
 
   // Rotation based on the mouse position for our global transform
   ngl::Mat4 rotX;
@@ -111,18 +120,17 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
 
   // draw
-  loadMatricesToShader(ParticleShader);
-  glBindTexture(GL_TEXTURE_2D,m_texID);
+    loadMatricesToShader(ParticleShader);
+    glBindTexture(GL_TEXTURE_2D,m_texID);
 
-  glPointSize(m_pointSize);
-  auto begin = std::chrono::steady_clock::now();
-  m_particle->render();
-  auto end = std::chrono::steady_clock::now();
-  m_renderTime=std::chrono::duration_cast<std::chrono::milliseconds> (end - begin);
-
-  loadMatricesToShader(ngl::nglColourShader);
-  ngl::VAOPrimitives::instance()->draw("grid");
-  const QString c_systemType[]={
+    glPointSize(m_pointSize);
+    auto begin = std::chrono::steady_clock::now();
+    m_particle->render();
+    auto end = std::chrono::steady_clock::now();
+    m_renderTime=std::chrono::duration_cast<std::chrono::milliseconds> (end - begin);
+    loadMatricesToShader(ngl::nglColourShader);
+    ngl::VAOPrimitives::instance()->draw("grid");
+/*  const QString c_systemType[]={
     "Particle System SOA -> SSE",
     "Particle System AOS",
     "Particle System SOA (No SSE)",
@@ -137,10 +145,79 @@ void NGLScene::paintGL()
   m_text->renderText(10,60,text);
   text=QString("render time %1ms").arg(m_renderTime.count());
   m_text->renderText(10,80,text);
-
+  */
+  m_updateTimes.erase(std::begin(m_updateTimes));
+  m_updateTimes.push_back(m_updateTime.count());
+  m_renderTimes.erase(std::begin(m_renderTimes));
+  m_renderTimes.push_back(m_renderTime.count());
   ++m_frames;
+  if(m_showUI==true)
+    drawUI();
+
+}
+
+void NGLScene::drawUI()
+{
+  QtImGui::newFrame();
+
+  ImGui::Begin("Particle System");
+
+  const char* items[]={
+  "Particle System SOA -> SSE",
+  "Particle System AOS",
+  "Particle System SOA (No SSE)",
+  "Particle System AVX2",
+  "Particle System SSE-Random"
+  };
+  static int whichSystem=4;
+  static int lastSystem=4;
+  ImGui::Combo("System Type", &whichSystem, items,5);   // Combo using proper array. You can also pass a callback to retrieve array value, no need to create/copy an array just for that.
+  if(whichSystem !=lastSystem)
+  {
+    lastSystem=whichSystem;
+    emit updateSystem(lastSystem);
+  }
+
+  ImGui::Separator();
+
+  ImGui::Checkbox("Animate", &m_animate);
+  ImGui::SameLine();
+  ImGui::Checkbox("Circle", &m_circle);
+  ImGui::Separator();
+  ImGui::SliderFloat("Energy", &m_energyRange,0.1f,40.0f);
+  m_particle->setEnergy(m_energyRange);
+  ImGui::SliderInt("Point Size",&m_pointSize,0,20);
+  ImGui::Separator();
+  float ave=float(std::accumulate(std::begin(m_updateTimes),std::end(m_updateTimes),0)) / m_updateTimes.size();
+  char aveText[10];
+  sprintf(aveText,"ave %0.4f",ave);
+  ImGui::PlotLines("Update", &m_updateTimes[0], m_updateTimes.size(), 0, aveText, -1.0f, 1.0f, ImVec2(0,80));
+  ave=float(std::accumulate(std::begin(m_renderTimes),std::end(m_renderTimes),0)) / m_renderTimes.size();
+  sprintf(aveText,"ave %0.4f",ave);
+  ImGui::PlotLines("Render", &m_renderTimes[0], m_renderTimes.size(), 0, aveText, -1.0f, 1.0f, ImVec2(0,80));
 
 
+  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+  ImGui::End();
+
+  ImGui::Render();
+
+
+}
+
+void NGLScene::updateSystem(int _type)
+{
+  m_particle.reset(new ParticleSystem(m_numParticles,{0,0,0}));
+/*  switch (_type)
+  {
+
+  case 0 : m_particle.reset(new ParticleSystem(m_numParticles,{0,0,0}));  break;
+  case 1 : m_particle.reset(new ParticleSystemAOS(m_numParticles,{0,0,0})); break;
+  case 2:  m_particle.reset(new ParticleSystemNormal(m_numParticles,{0,0,0})); break;
+  case 3:  m_particle.reset(new ParticleSystemAVX2(m_numParticles,{0,0,0})); break;
+  case 4 : m_particle.reset(new ParticleSystemSSERAND(m_numParticles,{0,0,0})); break;
+  }
+*/
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -197,7 +274,7 @@ void NGLScene::keyPressEvent( QKeyEvent* _event )
     case Qt::Key_Down : m_particle->updatePosition(0,-0.1f,0); break;
     case Qt::Key_I : m_particle->updatePosition(0,0.0,0.1f); break;
     case Qt::Key_O : m_particle->updatePosition(0,0,-0.1f); break;
-
+    case Qt::Key_U : m_showUI^=true; break;
     default:
       break;
   }

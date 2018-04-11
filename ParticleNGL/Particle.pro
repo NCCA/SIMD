@@ -27,7 +27,12 @@ $$PWD/src/ParticleSystemSSERand.cpp \
 $$PWD/src/NGLSceneMouseControls.cpp \
 $$PWD/src/NGLScene.cpp \
 $$PWD/src/Particle.cpp \
-$$PWD/src/random.cpp
+$$PWD/src/random.cpp \
+$$PWD/imgui/src/QtImGui.cpp \
+$$PWD/imgui/src/ColourPicker.cpp \
+$$PWD/imgui/src/imgui_draw.cpp \
+$$PWD/imgui/src/ImGuiRenderer.cpp \
+$$PWD/imgui/src/imgui.cpp
 
 
 
@@ -42,10 +47,13 @@ HEADERS+= $$PWD/include/NGLScene.h \
           $$PWD/include/AlignedArray.h \
           $$PWD/include/random.h \
           $$PWD/include/AbstractParticleSystem.h \
-          ../include/simd.h
+          ../include/simd.h \
+          $$PWD/imgui/include/*.h
 # and add the include dir into the search path for Qt and make
 INCLUDEPATH+=./include
 INCLUDEPATH+= $$PWD/../include/
+INCLUDEPATH+= $$PWD/imgui/include/
+
 # where our exe is going to live (root of project)
 DESTDIR=./
 # add the glsl shader files

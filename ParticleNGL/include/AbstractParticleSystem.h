@@ -19,6 +19,7 @@ class AbstractParticleSystem
     m_pos.m_z+=_dz;
   }
   void updateEnergy(float _dt) {m_energyRange+=_dt;}
+  void setEnergy(float _energy){m_energyRange=_energy;}
   ngl::Vec3 m_pos;
   float m_energyRange=1.0f;
 

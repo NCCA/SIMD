@@ -14,9 +14,10 @@ ParticleSystem::ParticleSystem(size_t _numParticles,ngl::Vec3 _pos)
   m_particles.reset(new Particle(_numParticles));
   m_pos=_pos;
   setDefaults();
+
   m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
-  m_vao->bind();
   std::vector<ngl::Vec3> data(_numParticles);
+  m_vao->bind();
   m_vao->setData( ngl::SimpleVAO::VertexData(m_numParticles*sizeof(ngl::Vec3),data[0].m_x));
   // We must do this each time as we change the data.
   m_vao->setVertexAttributePointer(0,3,GL_FLOAT,0,0);

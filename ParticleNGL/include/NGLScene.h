@@ -116,8 +116,20 @@ private:
   GLuint m_texID;
   GLint m_pointSize=2;
   size_t m_systemType=4;
+  float m_energyRange=1.0f;
   std::chrono::milliseconds  m_updateTime;
   std::chrono::milliseconds m_renderTime;
+  void drawUI();
+  std::vector<float> m_updateTimes;
+  std::vector<float> m_renderTimes;
+  int m_whichSystem=4;
+  bool m_updateSystem=false;
+  bool m_showUI=true;
+
+ signals :
+  void changeSystem(int type);
+ private slots :
+  void updateSystem(int type);
 
 };
 
