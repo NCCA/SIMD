@@ -70,9 +70,9 @@ void NGLScene::initializeGL()
   m_particle.reset(new ParticleSystemSSERAND(m_numParticles,{0,0,0}));
   m_particleUpdateTimer=startTimer(0);
   ngl::VAOPrimitives::instance()->createLineGrid("grid",20,20,100);
-  m_text.reset(new ngl::Text(QFont("Arial",14)));
-  m_text->setScreenSize(width(),height());
-  m_text->setColour(1,1,0);
+  //m_text.reset(new ngl::Text(QFont("Arial",14)));
+  //m_text->setScreenSize(width(),height());
+  //m_text->setColour(1,1,0);
   shader->loadShader(ParticleShader,"shaders/ParticleVertex.glsl",
                                     "shaders/ParticleFragment.glsl");
 
@@ -80,8 +80,9 @@ void NGLScene::initializeGL()
   shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
   ngl::Texture t("textures/texture.png");
   m_texID=t.setTextureGL();
-
   QtImGui::initialize(this);
+
+
 }
 
 
@@ -207,8 +208,7 @@ void NGLScene::drawUI()
 
 void NGLScene::updateSystem(int _type)
 {
-  m_particle.reset(new ParticleSystem(m_numParticles,{0,0,0}));
-/*  switch (_type)
+  switch (_type)
   {
 
   case 0 : m_particle.reset(new ParticleSystem(m_numParticles,{0,0,0}));  break;
@@ -217,7 +217,7 @@ void NGLScene::updateSystem(int _type)
   case 3:  m_particle.reset(new ParticleSystemAVX2(m_numParticles,{0,0,0})); break;
   case 4 : m_particle.reset(new ParticleSystemSSERAND(m_numParticles,{0,0,0})); break;
   }
-*/
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------

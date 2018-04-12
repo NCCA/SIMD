@@ -120,7 +120,6 @@ void ParticleSystemAOS::render()
 
   size_t v = 0;
   ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
-  std::cout<<verts<<' '<<*verts<<'\n';
 
   for (size_t  i = 0; i < m_numParticles; ++i)
    {

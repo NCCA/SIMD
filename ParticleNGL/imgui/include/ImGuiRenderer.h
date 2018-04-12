@@ -4,6 +4,8 @@
 #include <imgui.h>
 #include <memory>
 #include <ngl/Types.h>
+#include <ngl/AbstractVAO.h>
+#include <memory>
 class QMouseEvent;
 class QWheelEvent;
 class QKeyEvent;
@@ -47,12 +49,9 @@ private:
     bool         g_MousePressed[3] = { false, false, false };
     float        g_MouseWheel = 0.0f;
     GLuint       g_FontTexture = 0;
-  //  int          g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
-  //  int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
-  //  int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
-    GLuint /*g_VboHandle = 0*/ g_VaoHandle = 0 /*g_ElementsHandle = 0*/;
-    // VBO 0 ELEMENT 1
-    GLuint m_buffers[2];
+////  std::unique_ptr<ngl::AbstractVAO> m_vao;
+//    std::unique_ptr<ngl::AbstractVAO> vao;
+
 };
 
 }

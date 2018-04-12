@@ -373,6 +373,7 @@ void ParticleSystemSSERAND::render()
 
  ngl::Vec3 *verts=reinterpret_cast<ngl::Vec3 *> (m_vao->mapBuffer());
 
+
  // lambda to set the vertex from a register
  auto setVert=[&verts](f128 reg)
  {

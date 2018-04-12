@@ -7,6 +7,8 @@
 #include <QDebug>
 #include <iostream>
 #include <ngl/ShaderLib.h>
+#include <ngl/SimpleIndexVAO.h>
+#include <ngl/VAOFactory.h>
 namespace QtImGui {
 static const char* ImGUIShader="ImGUIShader";
 namespace {
@@ -115,42 +117,24 @@ void ImGuiRenderer::renderDrawList(ImDrawData *draw_data)
     shader->use(ImGUIShader);
     shader->setUniform("Tex",0);
     shader->setUniform("ProjMtx",ortho_projection);
+    std::unique_ptr<ngl::AbstractVAO> vao;
+    vao.reset(ngl::VAOFactory::createVAO(ngl::simpleIndexVAO,GL_TRIANGLES) );
 
-    // added
-    glGenVertexArrays(1, &g_VaoHandle);
-    glBindVertexArray(g_VaoHandle);
-
-    glGenBuffers(2, &m_buffers[0]);
-  //  std::cout<<"vbo handle "<<g_VboHandle<<'\n';
-  //  glGenBuffers(1, &g_ElementsHandle);
-  //  std::cout<<"elements handle "<<g_ElementsHandle<<'\n';
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_buffers[0]);
-
-  #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, pos));
-      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, uv));
-      glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, col));
-  #undef OFFSETOF
-      glEnableVertexAttribArray(0);
-      glEnableVertexAttribArray(1);
-      glEnableVertexAttribArray(2);
-
-
-
- //   glBindVertexArray(g_VaoHandle);
-
+    vao->bind();
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawIdx* idx_buffer_offset = 0;
+        vao->setData(ngl::SimpleIndexVAO::VertexData(
+                         cmd_list->VtxBuffer.Size * sizeof(ImDrawVert),
+                         cmd_list->VtxBuffer.Data->pos.x,
+                         (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx),(const GLvoid*)cmd_list->IdxBuffer.Data,
+                         sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT));
+        vao->setVertexAttributePointer(0,2,GL_FLOAT,sizeof(ImDrawVert), 0);
+        vao->setVertexAttributePointer(1,2,GL_FLOAT,sizeof(ImDrawVert), 2);
+        vao->setVertexAttributePointer(2,4,GL_UNSIGNED_BYTE,sizeof(ImDrawVert), 4,GL_TRUE);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_buffers[0]);
-        glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_buffers[1]);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
-
+        vao->setNumIndices(cmd_list->IdxBuffer.Size);
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -162,20 +146,20 @@ void ImGuiRenderer::renderDrawList(ImDrawData *draw_data)
             {
                 glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
                 glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-                glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
+               // glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer_offset);
+               vao->draw();
             }
             idx_buffer_offset += pcmd->ElemCount;
         }
     }
-  glDeleteBuffers(2,&m_buffers[0]);
-  glDeleteVertexArrays(1,&g_VaoHandle);
+    vao->unbind();
     // Restore modified GL state
- //   glUseProgram(last_program);
- //   glBindTexture(GL_TEXTURE_2D, last_texture);
- //   glActiveTexture(last_active_texture);
- //   glBindVertexArray(last_vertex_array);
- //   glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
- //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
+    glUseProgram(last_program);
+    glBindTexture(GL_TEXTURE_2D, last_texture);
+    glActiveTexture(last_active_texture);
+    glBindVertexArray(last_vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
     glBlendEquationSeparate(last_blend_equation_rgb, last_blend_equation_alpha);
     glBlendFuncSeparate(last_blend_src_rgb, last_blend_dst_rgb, last_blend_src_alpha, last_blend_dst_alpha);
     if (last_enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
@@ -216,39 +200,20 @@ bool ImGuiRenderer::createDeviceObjects()
 {
 
   // Backup GL state
-//  GLint last_texture, last_array_buffer, last_vertex_array;
-//  glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-//  glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
-//  glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
+  GLint last_texture, last_array_buffer, last_vertex_array;
+  glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+  glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
+  glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
   shader->loadShader(ImGUIShader,"shaders/imguiVertex.glsl","shaders/imguiFragment.glsl");
-  glGenVertexArrays(1, &g_VaoHandle);
-  glBindVertexArray(g_VaoHandle);
 
-  glGenBuffers(2, &m_buffers[0]);
-//  std::cout<<"vbo handle "<<g_VboHandle<<'\n';
-//  glGenBuffers(1, &g_ElementsHandle);
-//  std::cout<<"elements handle "<<g_ElementsHandle<<'\n';
+  createFontsTexture();
+  // Restore modified GL state
+  glBindTexture(GL_TEXTURE_2D, last_texture);
+  glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
+  glBindVertexArray(last_vertex_array);
 
-  glBindBuffer(GL_ARRAY_BUFFER, m_buffers[0]);
-
-#define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, pos));
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, uv));
-    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)OFFSETOF(ImDrawVert, col));
-#undef OFFSETOF
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    createFontsTexture();
-
-    // Restore modified GL state
-//    glBindTexture(GL_TEXTURE_2D, last_texture);
-//    glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer);
-//    glBindVertexArray(last_vertex_array);
-
-    return true;
+  return true;
 }
 
 void ImGuiRenderer::newFrame()
