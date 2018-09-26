@@ -15,7 +15,7 @@ ParticleSystem::ParticleSystem(size_t _numParticles,ngl::Vec3 _pos)
   m_pos=_pos;
   setDefaults();
 
-  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
+  m_vao= ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS);
   std::vector<ngl::Vec3> data(_numParticles);
   m_vao->bind();
   m_vao->setData( ngl::SimpleVAO::VertexData(m_numParticles*sizeof(ngl::Vec3),data[0].m_x));
@@ -432,22 +432,22 @@ void ParticleSystem::render()
    xmm1 = shuffle4f(xmm4, xmm5, 3, 2, 3, 2); // xmm1:   1.0   z[i+1]  y[i+1]  x[i+1]
    xmm2 = shuffle4f(xmm6, xmm7, 1, 0, 1, 0); // xmm2:   1.0   z[i+2]  y[i+2]  x[i+2]
    xmm3 = shuffle4f(xmm6, xmm7, 3, 2, 3, 2); // xmm3:   1.0   z[i+3]  y[i+3]  x[i+3]
-   if (m_particles->m_alive[i])
+   //if (m_particles->m_alive[i])
    {
      setVert(xmm0);
    }
 
-   if (m_particles->m_alive[i+1])
+   //if (m_particles->m_alive[i+1])
    {
      setVert(xmm1);
    }
 
-   if (m_particles->m_alive[i+2])
+   //if (m_particles->m_alive[i+2])
    {
      setVert(xmm2);
    }
 
-   if (m_particles->m_alive[i+3])
+   //if (m_particles->m_alive[i+3])
    {
      setVert(xmm3);
    }

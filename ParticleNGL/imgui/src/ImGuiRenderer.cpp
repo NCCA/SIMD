@@ -118,13 +118,13 @@ void ImGuiRenderer::renderDrawList(ImDrawData *draw_data)
     shader->setUniform("Tex",0);
     shader->setUniform("ProjMtx",ortho_projection);
     std::unique_ptr<ngl::AbstractVAO> vao;
-    vao.reset(ngl::VAOFactory::createVAO(ngl::simpleIndexVAO,GL_TRIANGLES) );
+    vao=ngl::VAOFactory::createVAO(ngl::simpleIndexVAO,GL_TRIANGLES);
 
     vao->bind();
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
-        const ImDrawIdx* idx_buffer_offset = 0;
+        const ImDrawIdx* idx_buffer_offset = nullptr;
         vao->setData(ngl::SimpleIndexVAO::VertexData(
                          cmd_list->VtxBuffer.Size * sizeof(ImDrawVert),
                          cmd_list->VtxBuffer.Data->pos.x,

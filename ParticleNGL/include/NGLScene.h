@@ -1,9 +1,6 @@
 #ifndef NGLSCENE_H_
 #define NGLSCENE_H_
 #include "WindowParams.h"
-#include <ngl/Camera.h>
-#include <ngl/Colour.h>
-#include <ngl/Light.h>
 #include <ngl/Text.h>
 #include <QOpenGLWindow>
 #include <QTime>
@@ -35,7 +32,7 @@ public:
   //----------------------------------------------------------------------------------------------------------------------
   /// @brief dtor must close down ngl and release OpenGL resources
   //----------------------------------------------------------------------------------------------------------------------
-  ~NGLScene();
+  ~NGLScene() override;
   //----------------------------------------------------------------------------------------------------------------------
   /// @brief the initialize class is called once when the window is created and we have a valid GL context
   /// use this to setup any default GL stuff
@@ -125,6 +122,7 @@ private:
   int m_whichSystem=4;
   bool m_updateSystem=false;
   bool m_showUI=true;
+  void EditTransform();
 
  signals :
   void changeSystem(int type);

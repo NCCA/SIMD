@@ -15,7 +15,7 @@ ParticleSystemAOS::ParticleSystemAOS(size_t _numParticles,ngl::Vec3 _pos)
   m_particles.reset(new ParticleAOS[_numParticles]);
   m_pos=_pos;
   setDefaults();
-  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
+  m_vao= ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS);
   m_vao->bind();
 
   std::vector<ngl::Vec3> data(_numParticles);

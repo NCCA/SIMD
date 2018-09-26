@@ -17,7 +17,7 @@ ParticleSystemNormal::ParticleSystemNormal(size_t _numParticles,ngl::Vec3 _pos)
   m_particles.reset(new Particle(_numParticles));
   m_pos=_pos;
   setDefaults();
-  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
+  m_vao=ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS);
   m_vao->bind();
   std::vector<ngl::Vec3> data(_numParticles);
   m_vao->setData( ngl::SimpleVAO::VertexData(m_numParticles*sizeof(ngl::Vec3),data[0].m_x));

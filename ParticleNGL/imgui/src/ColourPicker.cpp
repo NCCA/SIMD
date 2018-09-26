@@ -1,6 +1,5 @@
 #include "imgui.h"
 #include "imgui_internal.h"
-#include <ngl/Colour.h>
 #include <ngl/Vec4.h>
 // based on https://gist.github.com/thennequin/a21d5769bdcaa4d0992e
 ImVec4 nglColorToImVec4(const ngl::Vec4 &_c)
@@ -73,7 +72,7 @@ bool ColorSelector(const char* pLabel, ngl::Vec4 &oRGBA)
 	const ImVec2 oPopupSize(175,350);
 	//ImGui::SetNextWindowSize(oPopupSize, ImGuiSetCond_Always);
 	ImGui::SetNextWindowPos(ImVec2(oRectMin.x, oRectMax.y + 5), ImGuiSetCond_Appearing);
-	if (pWindow->StateStorage.GetInt(iStorageOpen, 0) == 1 && ImGui::Begin("Color picker", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
+  if (pWindow->StateStorage.GetInt(iStorageOpen, 0) == 1 && ImGui::Begin("Color picker", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		bRet = false;
 		const int iCheckboardTileSize = 10;

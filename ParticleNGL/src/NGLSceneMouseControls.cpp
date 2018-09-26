@@ -1,11 +1,14 @@
 #include "NGLScene.h"
 #include <QMouseEvent>
-
+#include <QApplication>
 
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::mouseMoveEvent( QMouseEvent* _event )
 {
-  // note the method buttons() is the button state when event was called
+  // only update on alt key pressed
+  if(!QGuiApplication::queryKeyboardModifiers().testFlag(Qt::AltModifier))
+    return;
+    // note the method buttons() is the button state when event was called
   // that is different from button() which is used to check which button was
   // pressed when the mousePress/Release event is generated
   if ( m_win.rotate && _event->buttons() == Qt::LeftButton )

@@ -32,7 +32,9 @@ $$PWD/imgui/src/QtImGui.cpp \
 $$PWD/imgui/src/ColourPicker.cpp \
 $$PWD/imgui/src/imgui_draw.cpp \
 $$PWD/imgui/src/ImGuiRenderer.cpp \
-$$PWD/imgui/src/imgui.cpp
+$$PWD/imgui/src/imgui.cpp \
+$$PWD/imgui/src/ImGuizmo.cpp
+
 
 
 

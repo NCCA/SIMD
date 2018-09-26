@@ -1,10 +1,6 @@
 #include "NGLScene.h"
 #include <QGuiApplication>
 #include <QMouseEvent>
-
-#include <ngl/Camera.h>
-#include <ngl/Light.h>
-#include <ngl/Material.h>
 #include <ngl/NGLInit.h>
 #include <ngl/NGLStream.h>
 #include <ngl/ShaderLib.h>
@@ -19,6 +15,7 @@
 #include <chrono>
 #include "imgui.h"
 #include "QtImGui.h"
+#include "ImGuizmo.h"
 
 NGLScene::NGLScene(size_t _numParticles)
 {
@@ -28,8 +25,8 @@ NGLScene::NGLScene(size_t _numParticles)
   m_frames=0;
   m_numParticles=_numParticles;
   m_timer.start();
-  m_updateTimes.resize(200);
-  m_renderTimes.resize(200);
+  m_updateTimes.resize(20);
+  m_renderTimes.resize(20);
   connect(this,SIGNAL(changeSystem(int)),this,SLOT(updateSystem(int)));
 
 }
@@ -121,40 +118,92 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[ 3 ][ 2 ] = m_modelPos.m_z;
 
   // draw
-    loadMatricesToShader(ParticleShader);
-    glBindTexture(GL_TEXTURE_2D,m_texID);
+  loadMatricesToShader(ParticleShader);
+  glBindTexture(GL_TEXTURE_2D,m_texID);
 
-    glPointSize(m_pointSize);
-    auto begin = std::chrono::steady_clock::now();
-    m_particle->render();
-    auto end = std::chrono::steady_clock::now();
-    m_renderTime=std::chrono::duration_cast<std::chrono::milliseconds> (end - begin);
-    loadMatricesToShader(ngl::nglColourShader);
-    ngl::VAOPrimitives::instance()->draw("grid");
-/*  const QString c_systemType[]={
-    "Particle System SOA -> SSE",
-    "Particle System AOS",
-    "Particle System SOA (No SSE)",
-    "Particle System AVX2",
-    "Particle System SSE-Random"
-  };
-  QString text=c_systemType[m_systemType];
-  m_text->renderText(10,20,text);
-  text=QString("Total Particles %1 %2 fps").arg(m_numParticles).arg(m_fps);
-  m_text->renderText(10,40,text);
-  text=QString("update time %1ms").arg(m_updateTime.count());
-  m_text->renderText(10,60,text);
-  text=QString("render time %1ms").arg(m_renderTime.count());
-  m_text->renderText(10,80,text);
-  */
+  glPointSize(m_pointSize);
+  auto begin = std::chrono::steady_clock::now();
+  m_particle->render();
+  auto end = std::chrono::steady_clock::now();
+  m_renderTime=std::chrono::duration_cast<std::chrono::milliseconds> (end - begin);
+  loadMatricesToShader(ngl::nglColourShader);
+  ngl::VAOPrimitives::instance()->draw("grid");
+
   m_updateTimes.erase(std::begin(m_updateTimes));
-  m_updateTimes.push_back(m_updateTime.count());
+  m_updateTimes.push_back(m_updateTime.count()/10.0f);
   m_renderTimes.erase(std::begin(m_renderTimes));
-  m_renderTimes.push_back(m_renderTime.count());
+  m_renderTimes.push_back(m_renderTime.count()/10.0f);
   ++m_frames;
   if(m_showUI==true)
     drawUI();
 
+}
+
+
+void NGLScene::EditTransform()
+{
+  ImGuizmo::BeginFrame();
+
+  static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
+  static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+  if (ImGui::IsKeyPressed(90))
+    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+  if (ImGui::IsKeyPressed(69))
+    mCurrentGizmoOperation = ImGuizmo::ROTATE;
+  if (ImGui::IsKeyPressed(82)) // r Key
+    mCurrentGizmoOperation = ImGuizmo::SCALE;
+  if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
+    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
+    mCurrentGizmoOperation = ImGuizmo::ROTATE;
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
+    mCurrentGizmoOperation = ImGuizmo::SCALE;
+  float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+
+ // ImGuizmo::DecomposeMatrixToComponents(matrix.m16, matrixTranslation, matrixRotation, matrixScale);
+  ImGui::InputFloat3("Tr", matrixTranslation, 3);
+  ImGui::InputFloat3("Rt", matrixRotation, 3);
+  ImGui::InputFloat3("Sc", matrixScale, 3);
+  //ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix.m16);
+
+  if (mCurrentGizmoOperation != ImGuizmo::SCALE)
+  {
+    if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
+      mCurrentGizmoMode = ImGuizmo::LOCAL;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
+      mCurrentGizmoMode = ImGuizmo::WORLD;
+  }
+  static bool useSnap(false);
+  if (ImGui::IsKeyPressed(83))
+    useSnap = !useSnap;
+  ImGui::Checkbox("", &useSnap);
+  ImGui::SameLine();
+  /*ImGuizmo::vec_t snap;
+  switch (mCurrentGizmoOperation)
+  {
+  case ImGuizmo::TRANSLATE:
+    snap = config.mSnapTranslation;
+    ImGui::InputFloat3("Snap", &snap.x);
+    break;
+  case ImGuizmo::ROTATE:
+    snap = config.mSnapRotation;
+    ImGui::InputFloat("Angle Snap", &snap.x);
+    break;
+  case ImGuizmo::SCALE:
+    snap = config.mSnapScale;
+    ImGui::InputFloat("Scale Snap", &snap.x);
+    break;
+  }*/
+  ImGuiIO& io = ImGui::GetIO();
+  const ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,500.0f);
+   ngl::Mat4 view=ngl::lookAt({0,2,2},{0,0,0},{0,1,0});
+
+  ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+  ngl::Mat4 matrix;
+  ImGuizmo::Manipulate(&view.m_openGL[0], &projection.m_openGL[0], mCurrentGizmoOperation, mCurrentGizmoMode, &matrix.m_openGL[0], nullptr,  nullptr);
 }
 
 void NGLScene::drawUI()
@@ -189,16 +238,17 @@ void NGLScene::drawUI()
   m_particle->setEnergy(m_energyRange);
   ImGui::SliderInt("Point Size",&m_pointSize,0,20);
   ImGui::Separator();
-  float ave=float(std::accumulate(std::begin(m_updateTimes),std::end(m_updateTimes),0)) / m_updateTimes.size();
-  char aveText[10];
-  sprintf(aveText,"ave %0.4f",ave);
-  ImGui::PlotLines("Update", &m_updateTimes[0], m_updateTimes.size(), 0, aveText, -1.0f, 1.0f, ImVec2(0,80));
-  ave=float(std::accumulate(std::begin(m_renderTimes),std::end(m_renderTimes),0)) / m_renderTimes.size();
-  sprintf(aveText,"ave %0.4f",ave);
-  ImGui::PlotLines("Render", &m_renderTimes[0], m_renderTimes.size(), 0, aveText, -1.0f, 1.0f, ImVec2(0,80));
+  //float ave=float(std::accumulate(std::begin(m_updateTimes),std::end(m_updateTimes),0)) / m_updateTimes.size();
+  char aveText[20];
+  sprintf(aveText,"update %d ms",m_updateTime.count());
+  ImGui::PlotLines("Update", &m_updateTimes[0], m_updateTimes.size(), 0, aveText, 0.0f, 4.0f, ImVec2(0,80));
+  //ave=float(std::accumulate(std::begin(m_renderTimes),std::end(m_renderTimes),0)) / m_renderTimes.size();
+  sprintf(aveText,"render %d ms",m_renderTime.count());
+  ImGui::PlotLines("Render", &m_renderTimes[0], m_renderTimes.size(), 0, aveText, 0.0f, 4.0f, ImVec2(0,80));
 
 
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+ // EditTransform();
   ImGui::End();
 
   ImGui::Render();
