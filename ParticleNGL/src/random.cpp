@@ -93,7 +93,7 @@ f128 rand4f()
   const f128 ONE=splat4f(1.0f);
   f128 x;
   i128 a=shiftBitsRight4i32( rand4i() , 9); // Take upper 23 bits
-  x=   or4f (a,mask);
+  x=or4f (cast4f(a),cast4f(mask));
   return sub4f(x,ONE);
 
 }
@@ -132,7 +132,7 @@ f128 frexp4f(const f128 x, i128 &e)
   xx = and4f(xx, INVMANTISSAMASK);
   xx = or4f(xx, POINTFIVE);
   emm0 = sub4i(emm0, SEVEN);
-  e = cast4f(emm0);
+  e = (emm0);
   e = add4i(e, ONE);
   return xx;
 }
@@ -186,7 +186,7 @@ f128 log4f(const f128 _l)
   const f128 c2 = fmadd4f(mant, b2, D2);
   const f128 c1 = fmadd4f(mant, b1, D1);
   const f128 d2 = div4f(ONE,c2);//  reciprocal4f(c2);
-  return fmadd4f(c1, d2, exp);
+  return fmadd4f(c1, d2, cast4f(exp));
 }
 
 f128 fastlog4f(const f128 _l)
@@ -202,7 +202,7 @@ f128 fastlog4f(const f128 _l)
   i128 exp;
   f128 mant=frexp4f(_l,exp);
   const f128 logm = fmadd4f(mant, fmadd4f(mant, fmadd4f(mant, A, B), C), D);
-  return add4f(exp, logm);
+  return add4f(cast4f(exp), logm);
 }
 
 
