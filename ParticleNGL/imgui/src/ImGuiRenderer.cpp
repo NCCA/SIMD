@@ -115,7 +115,7 @@ void ImGuiRenderer::renderDrawList(ImDrawData *draw_data)
     );
     ngl::ShaderLib *shader = ngl::ShaderLib::instance();
     shader->use(ImGUIShader);
-    shader->setUniform("Tex",0);
+    shader->setUniform("Texture",0);
     shader->setUniform("ProjMtx",ortho_projection);
     std::unique_ptr<ngl::AbstractVAO> vao;
     vao=ngl::VAOFactory::createVAO(ngl::simpleIndexVAO,GL_TRIANGLES);

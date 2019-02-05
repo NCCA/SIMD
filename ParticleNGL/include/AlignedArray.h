@@ -4,7 +4,11 @@
 #include "simd.h"
 #include <cstring>
 #include <cassert>
+#include <memory>
+#include <algorithm>
 
+// todo update this to use the new C++ 17 new(std::align_val_t(align))
+// and also check how we can do this with make_unique
 template <typename T, size_t align>
 class AlignedArrayRAII
 {
