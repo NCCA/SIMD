@@ -74,7 +74,7 @@ void NGLScene::initializeGL()
                                     "shaders/ParticleFragment.glsl");
 
   shader->use(ParticleShader);
-  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
+  //shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
   ngl::Texture t("textures/texture.png");
   m_texID=t.setTextureGL();
   QtImGui::initialize(this);
