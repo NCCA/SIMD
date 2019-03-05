@@ -514,6 +514,55 @@ _mm256_op_suffix(data_type param1, data_type param2, data_type param3)
 
 ---
 
+## Auto vectorization
+
+- Most compilers have some level of auto vectorization / SIMD support
+- Whilst this is useful it can't be guaranteed to work all the time.
+- Small changes in code can have big problems with changing how the code is generated
+
+```
+#include <cstdlib>
+
+float accumulate(float input[], size_t n)
+{
+    float acc=0.0f;
+    for(size_t i=0; i<n; ++i)
+    {
+        acc+=input[i];
+    }
+    return acc;
+}
+```
+
+--
+
+<iframe width="1000px" height="600px" src="https://godbolt.org/e#g:!((g:!((g:!((g:!((h:codeEditor,i:(j:1,lang:c%2B%2B,source:'%23include+%3Ccstdlib%3E%0A%0Afloat+accumulate(float+input%5B%5D,+size_t+n)%0A%7B%0A++++float+acc%3D0.0f%3B%0A++++for(size_t+i%3D0%3B+i%3Cn%3B+%2B%2Bi)%0A++++%7B%0A++++++++acc%2B%3Dinput%5Bi%5D%3B%0A++++%7D%0A++++return+acc%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%231',t:'0')),k:59.7212543554007,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:gsnapshot,filters:(b:'0',binary:'1',commentOnly:'0',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'1',trim:'1'),lang:c%2B%2B,libs:!((name:fmt,ver:'530')),options:'-O3+-std%3Dc%2B%2B17+-ffast-math',source:1),l:'5',n:'0',o:'x86-64+gcc+(trunk)+(Editor+%231,+Compiler+%231)+C%2B%2B',t:'0')),k:40.2787456445993,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',m:74.17893544733862,n:'0',o:'',t:'0'),(g:!((h:output,i:(compiler:1,editor:1,wrap:'1'),l:'5',n:'0',o:'%231+with+x86-64+gcc+(trunk)',t:'0')),header:(),l:'4',m:25.821064552661376,n:'0',o:'',s:0,t:'0')),l:'3',n:'0',o:'',t:'0')),version:4"></iframe>
+
+--
+
+<iframe width="1000px" height="600px" src="https://godbolt.org/e#g:!((g:!((g:!((g:!((h:codeEditor,i:(j:1,lang:c%2B%2B,source:'%23include+%3Ccstdlib%3E%0A%0Afloat+accumulate(float+f%5B%5D,+size_t+n)%0A%7B%0A++++float+acc%3D0.0f%3B%0A++++for(size_t+i%3D0%3B+i%3Cn%3B+%2B%2Bi)%0A++++%7B%0A++++++++float+d%3Df%5Bi%5D%3B%0A++++++++if(d+%3C+10.0f)%0A++++++++++++acc%2B%3Dd%3B%0A++++%7D%0A++++return+acc%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%231',t:'0')),k:57.14285714285714,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:gsnapshot,filters:(b:'0',binary:'1',commentOnly:'0',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'1',trim:'1'),lang:c%2B%2B,libs:!((name:fmt,ver:'530')),options:'-std%3Dc%2B%2B17++-mfma+-mavx2+-m64+-mf16c+-O3+-ffast-math',source:1),l:'5',n:'0',o:'x86-64+gcc+(trunk)+(Editor+%231,+Compiler+%231)+C%2B%2B',t:'0')),k:42.85714285714286,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',m:74.17893544733862,n:'0',o:'',t:'0'),(g:!((h:output,i:(compiler:1,editor:1,wrap:'1'),l:'5',n:'0',o:'%231+with+x86-64+gcc+(trunk)',t:'0')),header:(),l:'4',m:25.821064552661376,n:'0',o:'',s:0,t:'0')),l:'3',n:'0',o:'',t:'0')),version:4"></iframe>
+
+--
+
+<iframe width="1000px" height="600px" src="https://godbolt.org/e#g:!((g:!((g:!((g:!((h:codeEditor,i:(j:1,lang:c%2B%2B,source:'%23include+%3Ccstdlib%3E%0A%0Afloat+accumulate(float+f%5B%5D,+size_t+n)%0A%7B%0A++++float+acc%3D0.0f%3B%0A++++for(size_t+i%3D0%3B+i%3Cn%3B+%2B%2Bi)%0A++++%7B%0A++++++++float+d%3Df%5Bi%5D%3B%0A++++++++if(d+%3C+10.0f)%0A++++++++++++acc%2B%3Dd%3B%0A++++++++else%0A++++++++++++acc-%3Dd%3B%0A++++%7D%0A++++return+acc%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%231',t:'0')),k:57.14285714285714,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:gsnapshot,filters:(b:'0',binary:'1',commentOnly:'0',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'1',trim:'1'),lang:c%2B%2B,libs:!((name:fmt,ver:'530')),options:'-std%3Dc%2B%2B17++-mfma+-mavx2+-m64+-mf16c+-O3+-ffast-math',source:1),l:'5',n:'0',o:'x86-64+gcc+(trunk)+(Editor+%231,+Compiler+%231)+C%2B%2B',t:'0')),k:42.85714285714286,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',m:74.17893544733862,n:'0',o:'',t:'0'),(g:!((h:output,i:(compiler:1,editor:1,wrap:'1'),l:'5',n:'0',o:'%231+with+x86-64+gcc+(trunk)',t:'0')),header:(),l:'4',m:25.821064552661376,n:'0',o:'',s:0,t:'0')),l:'3',n:'0',o:'',t:'0')),version:4"></iframe>
+
+--
+
+<iframe width="1000px" height="600px" src="https://godbolt.org/e#g:!((g:!((g:!((g:!((h:codeEditor,i:(j:1,lang:c%2B%2B,source:'%23include+%3Cvector%3E%0A%23include+%3Cnumeric%3E%0A%0Aint+sumSquared(const+std::vector%3Cint%3E+%26v)%0A%7B%0A++int+res+%3D+0%3B%0A++for+(auto+i+:+v)%0A++%7B%0A++++res+%2B%3D+i+*+i%3B%0A++%7D%0A++return+res%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%231',t:'0')),k:57.14285714285714,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:gsnapshot,filters:(b:'0',binary:'1',commentOnly:'0',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'1',trim:'1'),lang:c%2B%2B,libs:!((name:fmt,ver:'530')),options:'-std%3Dc%2B%2B17++-mfma+-mavx2+-m64+-mf16c+-O3+-ffast-math',source:1),l:'5',n:'0',o:'x86-64+gcc+(trunk)+(Editor+%231,+Compiler+%231)+C%2B%2B',t:'0')),k:42.85714285714286,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',m:74.17893544733862,n:'0',o:'',t:'0'),(g:!((h:output,i:(compiler:1,editor:1,wrap:'1'),l:'5',n:'0',o:'%231+with+x86-64+gcc+(trunk)',t:'0')),header:(),l:'4',m:25.821064552661376,n:'0',o:'',s:0,t:'0')),l:'3',n:'0',o:'',t:'0')),version:4"></iframe>
+
+--
+
+
+## Better to write your own
+- in most cases it is better to design and write for SIMD
+- this is a different mindset and usually involves writing SOA type data structures
+  - SOA maps to instruction sets
+  - similar to scalar reference code (what we are trying to do)
+- More of this later first a gentle intro to intrinsics.
+
+---
+
+
 ## SSE3
 - to start with we will use SSE3 (and raw intrinsics code)
 - this covers most of the basics and is easier to understand
@@ -552,7 +601,7 @@ TEST(SSE3,_mm_loadu_ps)
 
 ## Accessing Values
 - Direct access to the elements will not compile on Win32 (the internals of registers are off limits, and are never specified, but they can never be accessed on the CPU). 
-- Clang/gcc allow you to away with this, but Win32 will not.
+- Clang/gcc allow you to get away with this, but Win32 will not.
 
 --
 
@@ -583,34 +632,20 @@ float getF3(__m128 a)
 
 ## Accessing Values
 
-- Produces the following assembly:
-
-```
-; zero cost cast, or _mm_cvtss_f32 
-getF0(float __vector(4)):
- ret    
-
-; swizzle + cast  _mm_cvtss_f32( _mm_movehdup_ps(a) )
-getF1(float __vector(4)):
- vmovshdup xmm0,xmm0
- ret    
-
-; _mm_cvtss_f32( _mm_movehl_ps(a) )
-getF2(float __vector(4)):
- vpermilpd xmm0,xmm0,0x1
- ret    
-
-; _mm_cvtss_f32( _mm_permute_ps(a, 0xe7) )
-getF3(float __vector(4)):
- vpermilps xmm0,xmm0,0xe7
- ret    
-```
+<iframe width="1000px" height="600px" src="https://godbolt.org/e#g:!((g:!((g:!((g:!((h:codeEditor,i:(j:1,lang:c%2B%2B,source:'%23include+%3Cpmmintrin.h%3E%0A%0Afloat+getF0(__m128+a)%0A%7B%0A++++return+a%5B0%5D%3B%0A%7D%0Afloat+getF1(__m128+a)%0A%7B%0A++++return+a%5B1%5D%3B%0A%7D%0Afloat+getF2(__m128+a)%0A%7B%0A++++return+a%5B2%5D%3B%0A%7D%0Afloat+getF3(__m128+a)%0A%7B%0A++++return+a%5B3%5D%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%231',t:'0')),k:59.7212543554007,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:gsnapshot,filters:(b:'0',binary:'1',commentOnly:'0',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'1',trim:'1'),lang:c%2B%2B,libs:!((name:fmt,ver:'530')),options:'-O3+-std%3Dc%2B%2B17+-ffast-math',source:1),l:'5',n:'0',o:'x86-64+gcc+(trunk)+(Editor+%231,+Compiler+%231)+C%2B%2B',t:'0')),k:40.2787456445993,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',m:74.17893544733862,n:'0',o:'',t:'0'),(g:!((h:output,i:(compiler:1,editor:1,wrap:'1'),l:'5',n:'0',o:'%231+with+x86-64+gcc+(trunk)',t:'0')),header:(),l:'4',m:25.821064552661376,n:'0',o:'',s:0,t:'0')),l:'3',n:'0',o:'',t:'0')),version:4"></iframe>
 
 --
 
 ## Accessing Values
 
 - Things get even nastier when you access elements 4 -> 7 in a __m256 (since it needs to do a 3 cycle permute128 prior the the code above). 
+
+<iframe width="800px" height="600px" src="https://godbolt.org/e#g:!((g:!((g:!((g:!((h:codeEditor,i:(j:1,lang:c%2B%2B,source:'%23include+%3Cimmintrin.h%3E%0A%0A%0Afloat+getF0(__m256+a)%0A%7B%0A++++return+a%5B0%5D%3B%0A%7D%0Afloat+getF1(__m256+a)%0A%7B%0A++++return+a%5B1%5D%3B%0A%7D%0Afloat+getF2(__m256+a)%0A%7B%0A++++return+a%5B2%5D%3B%0A%7D%0Afloat+getF3(__m256+a)%0A%7B%0A++++return+a%5B3%5D%3B%0A%7D%0A%0Afloat+getF4(__m256+a)%0A%7B%0A++++return+a%5B4%5D%3B%0A%7D%0A%0Afloat+getF5(__m256+a)%0A%7B%0A++++return+a%5B5%5D%3B%0A%7D%0A%0Afloat+getF6(__m256+a)%0A%7B%0A++++return+a%5B6%5D%3B%0A%7D%0A%0Afloat+getF7(__m256+a)%0A%7B%0A++++return+a%5B7%5D%3B%0A%7D%0A%0A'),l:'5',n:'0',o:'C%2B%2B+source+%231',t:'0')),k:59.7212543554007,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:compiler,i:(compiler:gsnapshot,filters:(b:'0',binary:'1',commentOnly:'0',demangle:'0',directives:'0',execute:'1',intel:'0',libraryCode:'1',trim:'1'),lang:c%2B%2B,libs:!((name:fmt,ver:'530')),options:'-O3+-std%3Dc%2B%2B17+-ffast-math+-mavx2+-mfma+-mf16c',source:1),l:'5',n:'0',o:'x86-64+gcc+(trunk)+(Editor+%231,+Compiler+%231)+C%2B%2B',t:'0')),k:40.2787456445993,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',m:74.17893544733862,n:'0',o:'',t:'0'),(g:!((h:output,i:(compiler:1,editor:1,wrap:'1'),l:'5',n:'0',o:'%231+with+x86-64+gcc+(trunk)',t:'0')),header:(),l:'4',m:25.821064552661376,n:'0',o:'',s:0,t:'0')),l:'3',n:'0',o:'',t:'0')),version:4"></iframe>
+
+--
+
+## Accessing Values
+
 - The only safe way is this (still slow)
 
 ```
@@ -621,6 +656,8 @@ void print(__m128 a)
   printf("%f %f %f %f", f[0], f[1], f[2], f[3]);
 }
 ```
+
+
 
 
 --
@@ -886,7 +923,7 @@ TEST(SSE3,length)
 - One of the issues with SSE / AVX code are the number of underscores
 - also types are a bit confusing.
 - we should re-factor / typedef our code to make it easier to read
-- see [this](https://github.com/AnimalLogic/AL_USDMaya/blob/master/lib/AL_USDMaya/AL/maya/SIMD.h) for a good example
+- see [this](https://github.com/AnimalLogic/AL_USDMaya/blob/master/usdutils/AL/usd/utils/SIMD.h) for a good example
 
 
 --
@@ -1004,6 +1041,7 @@ inline void storeu2d(void* const ptr, const d128 reg)
 
 ## load[u]4f
 - note the use of [alignas](http://en.cppreference.com/w/cpp/language/alignas) in the example.
+
 ```c++
 TEST(SSE4,loadu4f)
 {
@@ -1706,8 +1744,311 @@ TEST(AVX,fnmsub4f)
 
 ```
 
+
+---
+
+# An Example Mat2
+
+- [Based on Notes from ](http://lukasz.dk/mirror/research-scea/research/pdfs/GDC2003_Memory_Optimization_18Mar03.pdf)
+- Consider this basic Mat2 class
+
+```
+#include <array>
+
+struct Mat2
+{
+  Mat2()=default;
+  Mat2(float _a, float _b, float _c, float _d)
+  {
+    m[0][0]=_a;
+    m[0][1]=_b;
+    m[1][0]=_c;
+    m[1][1]=_d;
+  }
+  union
+  {
+    float m[2][2];
+    std::array<float,4> array={{1.0f,0.0f,
+                                0.0f,1.0f}};
+    struct
+    {
+      float m_00;
+      float m_01;
+      float m_10;
+      float m_11;
+    };
+  };
+};
+
+```
+
 --
+
+# Multiply Function
+
+```
+void MultMat2Normal(Mat2 &o_a, const Mat2 &_b, const Mat2 &_c) noexcept
+{
+  for (int i=0;i<2; ++i)
+  {
+    for (int j=0; j<2; ++j)
+    {
+      o_a.m[i][j]=0.0f;
+      for(int k=0; k<2; ++k)
+      {
+        o_a.m[i][j]+=_b.m[i][k] * _c.m[k][j];
+      }
+    }
+  }
+}
+```
+- We could start by loop unrolling
+
+--
+
+```
+void MultMat2Unroll(Mat2 &o_a, const Mat2 &_b, const Mat2 &_c) noexcept
+{
+  o_a.m[0][0] = _b.m[0][0]*_c.m[0][0] + _b.m[0][1]*_c.m[1][0];
+  o_a.m[0][1] = _b.m[0][0]*_c.m[0][1] + _b.m[0][1]*_c.m[1][1]; //(1)
+  o_a.m[1][0] = _b.m[1][0]*_c.m[0][0] + _b.m[1][1]*_c.m[1][0]; //(2)
+  o_a.m[1][1] = _b.m[1][0]*_c.m[0][1] + _b.m[1][1]*_c.m[1][1]; //(3)
+
+}
+```
+
+--
+
+## Problems
+- 16 Memory Reads 4 writes
+- There is an assumption that a is not b or c
+- Compiler doesn't know this
+  - (1) Must re-fetch ```b[0][0]``` and ```b[0][1]```
+  - (2) Must re-fetch ```c[0][0]``` and ```c[0][1]```
+  - (3) Must re-fetch ```b[0][0]```  , ```b[0][1]``` , ```c[0][0]``` and ```c[0][1]```
+  
+
+--
+
+## Pre-fetching
+
+- typical approach pre-fetch (consume inputs)
+- then calculate
+
+```
+// 8 memory reads 4 writes
+void MultMat2Prefetch(Mat2 &o_a, const Mat2 &_b, const Mat2 &_c) noexcept
+{
+  float b00 = _b.m[0][0], b01 = _b.m[0][1];
+  float b10 = _b.m[1][0], b11 = _b.m[1][1];
+  float c00 = _c.m[0][0], c01 = _c.m[0][1];
+  float c10 = _c.m[1][0], c11 = _c.m[1][1];
+  o_a.m[0][0] = b00*c00 + b01*c10;
+  o_a.m[0][1] = b00*c01 + b01*c11;
+  o_a.m[1][0] = b10*c00 + b11*c10;
+  o_a.m[1][1] = b10*c01 + b11*c11;
+}
+```
+
+--
+
+# Let's measure
+
+- Using Google Benchmark
+
+```
+Running /Users/jmacey/teaching/Code/SIMD/mat2/Mat2GBench
+Run on (8 X 2300 MHz CPU s)
+CPU Caches:
+  L1 Data 32K (x4)
+  L1 Instruction 32K (x4)
+  L2 Unified 262K (x4)
+  L3 Unified 6291K (x1)
+Load Average: 1.86, 2.09, 2.13
+------------------------------------------------------------
+Benchmark                 Time             CPU   Iterations
+------------------------------------------------------------
+Normal                 4.20 ns         4.19 ns    168568683
+Unroll                 2.63 ns         2.62 ns    257232836
+Prefetch               2.61 ns         2.61 ns    268775918
+```
+
+--
+
+## Let's Measure
+
+- Using hayai
+
+```
+[==========] Running 7 benchmarks.
+[ RUN      ] Mat2Tests.MultMat2Normal (10 runs, 100 iterations per run)
+[     DONE ] Mat2Tests.MultMat2Normal (0.003119 ms)
+[   RUNS   ]        Average time: 0.312 us
+                         Fastest: 0.288 us (-0.024 us / -7.663 %)
+                         Slowest: 0.482 us (+0.170 us / +54.537 %)
+
+             Average performance: 3206155.81917 runs/s
+                Best performance: 3472222.22222 runs/s (+266066.40305 runs/s / +8.29861 %)
+               Worst performance: 2074688.79668 runs/s (-1131467.02249 runs/s / -35.29046 %)
+[ITERATIONS]        Average time: 0.003 us
+                         Fastest: 0.003 us (-0.000 us / -7.663 %)
+                         Slowest: 0.005 us (+0.002 us / +54.537 %)
+
+             Average performance: 320615581.91728 iterations/s
+                Best performance: 347222222.22222 iterations/s (+26606640.30494 iterations/s / +8.29861 %)
+               Worst performance: 207468879.66805 iterations/s (-113146702.24923 iterations/s / -35.29046 %)
+[ RUN      ] Mat2Tests.MultMat2Unroll (10 runs, 100 iterations per run)
+[     DONE ] Mat2Tests.MultMat2Unroll (0.002302 ms)
+[   RUNS   ]        Average time: 0.230 us
+                         Fastest: 0.215 us (-0.015 us / -6.603 %)
+                         Slowest: 0.339 us (+0.109 us / +47.263 %)
+
+             Average performance: 4344048.65334 runs/s
+                Best performance: 4651162.79070 runs/s (+307114.13735 runs/s / +7.06977 %)
+               Worst performance: 2949852.50737 runs/s (-1394196.14597 runs/s / -32.09440 %)
+[ITERATIONS]        Average time: 0.002 us
+                         Fastest: 0.002 us (-0.000 us / -6.603 %)
+                         Slowest: 0.003 us (+0.001 us / +47.263 %)
+
+             Average performance: 434404865.33449 iterations/s
+                Best performance: 465116279.06977 iterations/s (+30711413.73528 iterations/s / +7.06977 %)
+               Worst performance: 294985250.73746 iterations/s (-139419614.59703 iterations/s / -32.09440 %)
+[ RUN      ] Mat2Tests.MultMat2Prefetch (10 runs, 100 iterations per run)
+[     DONE ] Mat2Tests.MultMat2Prefetch (0.013330 ms)
+[   RUNS   ]        Average time: 1.333 us
+                         Fastest: 0.156 us (-1.177 us / -88.297 %)
+                         Slowest: 9.290 us (+7.957 us / +596.924 %)
+
+             Average performance: 750187.54689 runs/s
+                Best performance: 6410256.41026 runs/s (+5660068.86337 runs/s / +754.48718 %)
+               Worst performance: 107642.62648 runs/s (-642544.92041 runs/s / -85.65124 %)
+[ITERATIONS]        Average time: 0.013 us
+                         Fastest: 0.002 us (-0.012 us / -88.297 %)
+                         Slowest: 0.093 us (+0.080 us / +596.924 %)
+
+             Average performance: 75018754.68867 iterations/s
+                Best performance: 641025641.02564 iterations/s (+566006886.33697 iterations/s / +754.48718 %)
+               Worst performance: 10764262.64801 iterations/s (-64254492.04066 iterations/s / -85.65124 %)
+```
+
+--
+
+## Always Measure
+
+- so it seems pre-fetching gives us an improvement
+- lets see what godbot says
+
+--
+
+<iframe width="1000px" height="800px" src="https://godbolt.org/e#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAKxAEZSAbAQwDtRkBSAJgCFufSAZ1QBXYskwgA5NwDMeFsgYisAag6yAwk2LEmATw3YOABgCCchUpWZ1WvAFsHCgsQUA6BEdMXzPwa4iyASqALJMBFw%2BHADsfOaqYRFcEACUGgAiWABmTCIMBBrxZonhkRDZDKgRqgD6TKSqldUhtQBGjc01tcidVd3o6QnqcT6JiQ4cAKw8JtMZ07PzmfVFY%2BOTM3NTCzO0y7IZ7WvDE4v7O4vbC4c9JyUb58t7B0fo94mxC8MiLHioLHWsWK4ya/RCmx4UUuM2hNxB4wC6BAIB0ekMWi6BFIABYjKo0QZMsDgbR3CZsqQTOTKetQfSGYymdSKaQyRSvpzZAjEgFiEFCqcRjzxljVA5aiY5ty6aLweLJfsZULEmKJbRpSLVfL1UqRVyEQbojF4dE/OYAG6oPDoML5AhlLgAORIDiYDAgjvUXAAbKh6o00CwAklIt6fe1AwCQ17uBHkEMLKNhtkSKoIC5VHhMprs1ootzvXxeHhE59kw9VWmMywQlQc0VVPX843%2BPwqGXxiSVap/Ux3JDszCePXLocWdkPvTU8QayEANYNwuLluFtu8eed0Hdyv0vsDxZD3Yj5a8FZtA8zI%2BLRc7VQAKjqyEvPFvx9Hpp7nKF34ev//lrWraoT2o6ACqLDEKgDAerGvp9lGwYhHBEYdKoQYxsk4Y9ImO6JPukLXFc8x2BkdQXoRzxLDs949C%2BRFbCR/DkfRVEXBktHPpC7HEWOCIEbxx7saRLGUcO1ycaxw7Ccx7RSUJ8ySdxbEHDwqgAPTqRAtCdgJLziUxhyiU8Bk0XRYnHtcRbGfpClmVxJmWapGlaVwun1C%2BPG2SJcnKaZHHmYJjnWb5jmOUpYW2Y2mkQLIuEmmavhmFaNp2gUjoAArEJg2SYAQyAIJ6WFxgh6HRshxW%2BpGZVIaGXDYQmxoImKbRSj5FFBYxOyNK1tDtfJYXKg8LUav1flOd1qhtLQfWZDZPBeQtqnrGKyBtXNgVdRNGSBiYs1GZt1F2Z%2Bw3ysgo0bQ5UVbYGM0%2BVdS3Sctwx6Udgkia1Jj3mtJjWb130alOr0MY9ZFzZ9317X9e0A3q6yvYtVngxqkO/cx020ADmrwx543BcjX1rbNvBTTNsP3ABZhSKkjDSFMUikCw0gmAzqDSJo65qcIYgSN6si0AzBDM9TNPziAUxkrQACcUxcDiXBcLIUs%2BlwAAcPoxLTUg4gzTNSCzpBs1IDOCCAJikEL%2BvU6QcCwEgaAOAADngDCYGQFAQA7zuu8QIDAKrsikNkLsEG7psQG0wukG0Cg6Po0gC6QDsOJgtYAPIsAw8dW6QWBumwrtR/g2XBHgFqYKbOeYAAHpgyAiKHCcMy4mAMFHDB4G0ejEPomgYJIUiJ64jjCzTzBsCgnOMJ3puQDTqCOwQ/zBtIAC0aeyKoq/ZLkASr26BAIIk%2B9MBa1f1fv2RulvDjZLQPrICbojiJIOla/TjNR0b1fq6vPo4qoYAyBkCqFVu4TeEBcCEDTHIegqg%2B5Oxdm7PmOl4Gc0FqPGmCBMBMCwL7NIpAxY4jAarEwOIYhTBiDEH0JhZAxFoLIHEUwtY61IA4OgUpP45yNibM2FtMFay4LrL%2B0gMFW1SDTcuxBBDLxADiIAA"></iframe>
+
+--
+
+## What about SIMD
+
+- SSE version
+
+```
+void MultMat2SIMD(Mat2 &o_a, const Mat2 &_b, const Mat2 &_c) noexcept
+{
+  __m128 a;
+  //                 b    c    d    e
+  //  o_a.m[0][0] = b00*c00 + b01*c10;
+  //  o_a.m[0][1] = b00*c01 + b01*c11;
+  //  o_a.m[1][0] = b10*c00 + b11*c10;
+  //  o_a.m[1][1] = b10*c01 + b11*c11;
+
+  __m128 b=_mm_setr_ps(_b.m_00,_b.m_00,_b.m_10,_b.m_10);
+  __m128 c=_mm_setr_ps(_c.m_00,_c.m_01,_c.m_00,_c.m_01);
+  __m128 d=_mm_setr_ps(_b.m_01,_b.m_01,_b.m_11,_b.m_11);
+  __m128 e=_mm_setr_ps(_c.m_10,_c.m_11,_c.m_10,_c.m_11);
+
+  // first compute d*e
+  __m128 f=_mm_mul_ps(d,e);
+  // fma  result = (a * b) + c
+  a=_mm_fmadd_ps(b,c,f);
+  _mm_storeu_ps(static_cast<float *>(&o_a.array[0]), a);
+
+}
+```
+
+--
+
+## AVX2
+
+```
+void MultMat2AVX2(Mat2 &o_a, const Mat2 &_b, const Mat2 &_c) noexcept
+{
+
+  //                 b    c    d    e
+  //  o_a.m[0][0] = b00*c00 + b01*c10;
+  //  o_a.m[0][1] = b00*c01 + b01*c11;
+  //  o_a.m[1][0] = b10*c00 + b11*c10;
+  //  o_a.m[1][1] = b10*c01 + b11*c11;
+
+  // first order the data so we get it in the format above
+  __m256 b=_mm256_setr_ps(_b.m_00,_b.m_01,_b.m_00,_b.m_01,
+                          _b.m_10,_b.m_11,_b.m_10,_b.m_11);
+
+  __m256 c=_mm256_setr_ps(_c.m_00,_c.m_10,_c.m_01,_c.m_11,
+                          _c.m_00,_c.m_10,_c.m_01,_c.m_11);
+  // now we multiply the elements
+  __m256 mul=_mm256_mul_ps(b,c);
+  // horizontal add will add [0] + [1] [2] + [3]
+  auto res=_mm256_hadd_ps(mul,mul); //bottleneck!
+  __m256i mask=_mm256_setr_epi32(0,1,4,5,0,1,4,5);
+  res=_mm256_permutevar8x32_ps(res,mask);
+  // copy out.
+  auto a=_mm256_castps256_ps128(res);
+  _mm_storeu_ps(static_cast<float *>(&o_a.array[0]), a);
+
+}
+
+```
+
+
+--
+
+
+## Benchmark
+
+```
+2019-03-05 10:25:59
+Running ./Mat2GBench
+Run on (8 X 2300 MHz CPU s)
+CPU Caches:
+  L1 Data 32K (x4)
+  L1 Instruction 32K (x4)
+  L2 Unified 262K (x4)
+  L3 Unified 6291K (x1)
+Load Average: 2.62, 2.28, 2.21
+------------------------------------------------------------
+Benchmark                 Time             CPU   Iterations
+------------------------------------------------------------
+Normal                 4.17 ns         4.17 ns    164728751
+Unroll                 2.65 ns         2.65 ns    260706664
+Prefetch               2.60 ns         2.60 ns    268339058
+SIMD                   2.62 ns         2.62 ns    269140711
+AVX2                   4.65 ns         4.65 ns    150673402
+```
+
+--
+
+# AVX2 is slower?
+
+- Just because an an intrinsic exists we shouldn't just use it
+- ```_mm256_hadd_ps``` is slow (as are most cross lane functions)
+- Always measure
+- There are other methods of doing this but will leave as an exercise
+- see [here](https://gist.github.com/nadavrot/5b35d44e8ba3dd718e595e40184d03f0)  
+
+
 
 ---
 
 ## References
+
+- https://www.gdcvault.com/play/1022249/SIMD-at-Insomniac-Games-How
+- https://asc.ziti.uni-heidelberg.de/sites/default/files/research/papers/public/St11ASX_CUDA.pdf
+- https://software.intel.com/sites/landingpage/IntrinsicsGuide/
+- http://www.farbrausch.de/~fg/articles/ubiquitous_sse_vector.html
