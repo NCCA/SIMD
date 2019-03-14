@@ -1631,6 +1631,29 @@ struct Vec3x32
 
 --
 
+# example
+
+```
+// Normalize 4 Vectors
+
+__m128 x = _mm_set_ps( A.x, B.x, C.x, D.x );
+__m128 y = _mm_set_ps( A.y, B.y, C.y, D.y );
+__m128 z = _mm_set_ps( A.z, B.z, C.z, D.z );
+__m128 sqX   = _mm_mul_ps( x, x );
+__m128 sqY   = _mm_mul_ps( y, y );
+__m128 sqZ   = _mm_mul_ps( z, z );
+__m128 sqlen = _mm_add_ps( _mm_add_ps( sqX, sqY ), sqZ );
+__m128 len   = _mm_sqrt_ps( sqlen );
+x = _mm_div_ps( x, len );
+y = _mm_div_ps( y, len );
+z = _mm_div_ps( z, len );
+
+```
+
+
+--
+
+
 ## set8f
 - similar to sse versions
 ``` c++
@@ -1743,6 +1766,89 @@ TEST(AVX,fnmsub4f)
 }
 
 ```
+
+
+---
+
+## Benchmarking 
+
+- one of the easiest ways to see if we are getting speedups is by using benchmarking
+- this can take many forms 
+  - our own timings
+  - using a profiling tool (vtune,valgrind etc etc)
+  - 3rd party benchmark library
+- sometimes it just helps to use godbolt  or [quickbench](http://quick-bench.com/)
+
+--
+
+## Background viewing
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/7YVMC5v4qCA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/P32hvk8b13M" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+--
+
+## [<chrono>](https://en.cppreference.com/w/cpp/chrono)
+
+- c++ 11 introduced a new timing library called chrono
+- The chrono library defines three main types as well as utility functions and common typedefs.
+  - clocks
+  - time points
+  - durations
+- Much easier to use than the old C style clocks
+
+--
+
+## Basic usage
+
+```
+
+#include <iostream>
+#include <chrono>
+#include <thread>
+
+void render()
+{
+  using namespace std::chrono_literals;
+  std::this_thread::sleep_for(10ms);  // do some work
+}
+
+int main()
+{
+  std::chrono::milliseconds renderTime;
+  auto begin = std::chrono::steady_clock::now();
+  // some work that takes time
+  render();
+  auto end = std::chrono::steady_clock::now();
+  renderTime=std::chrono::duration_cast<std::chrono::milliseconds> (end - begin);
+  std::cout<<"Render Time is "<<renderTime.count()<<"ms\n";
+}
+
+```
+
+--
+
+## Clocks
+
+- ```std::chrono::system_clock``` :- 
+  - use when you need time points that relate to a calandar
+  - knows time of day and data
+- ```std::chrono::steady_clock``` :-
+  - like a stopwatch but doesn't relate to a calandar
+> Objects of class high_resolution_clock represent clocks with the shortest tick period. high_resolution_clock may be a synonym for system_clock or steady_clock.
+
+--
+
+## A simple Benchmark class
+
+- The following template class is designed to do simple benchmarks
+- It also allows writing the data to a file once the destructor is called
+- Template parameters allow choosing duration and clock to use.
+
+--
+
+## 
 
 
 ---
@@ -2041,6 +2147,31 @@ AVX2                   4.65 ns         4.65 ns    150673402
 - Always measure
 - There are other methods of doing this but will leave as an exercise
 - see [here](https://gist.github.com/nadavrot/5b35d44e8ba3dd718e595e40184d03f0)  
+
+--
+
+## Fastest
+
+```
+  Mat2 operator*( const Mat2 &_m  ) const noexcept
+  {
+    Mat2 temp;
+    // With pre-fetch
+    float b00 = m[0][0], b01 = m[0][1];
+    float b10 = m[1][0], b11 = m[1][1];
+    float c00 = _m.m[0][0], c01 = _m.m[0][1];
+    float c10 = _m.m[1][0], c11 = _m.m[1][1];
+    temp.m[0][0] = b00*c00 + b01*c10;
+    temp.m[0][1] = b00*c01 + b01*c11;
+    temp.m[1][0] = b10*c00 + b11*c10;
+    temp.m[1][1] = b10*c01 + b11*c11;
+    return temp;
+  }
+```
+
+--
+
+<iframe width="1000px" height="800px" src="https://nccastaff.bournemouth.ac.uk/jmacey/AProg/slides/SIMD/Benchmarks.html"></iframe>
 
 
 
