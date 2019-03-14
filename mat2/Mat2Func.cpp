@@ -63,7 +63,7 @@ void MultMat2SIMD(Mat2 &o_a, const Mat2 &_b, const Mat2 &_c) noexcept
   __m128 f=_mm_mul_ps(d,e);
   // fma  result = (a * b) + c
   a=_mm_fmadd_ps(b,c,f);
-  _mm_storeu_ps(static_cast<float *>(&o_a.array[0]), a);
+  _mm_store_ps(static_cast<float *>(&o_a.array[0]), a);
 
 }
 
