@@ -67,7 +67,7 @@ struct Mat2
 
   union
   {
-    float m[2][2];
+    alignas(16) float m[2][2];
     std::array<float,4> array={{1.0f,0.0f,
                                 0.0f,1.0f}};
     struct

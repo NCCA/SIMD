@@ -64,17 +64,13 @@ void NGLScene::initializeGL()
   // grab an instance of shader manager
   ngl::ShaderLib* shader = ngl::ShaderLib::instance();
 
-  m_particle.reset(new ParticleSystemSSERAND(m_numParticles,{0,0,0}));
+  m_particle.reset(new ParticleSystemAOS(m_numParticles,{0,0,0}));
   m_particleUpdateTimer=startTimer(0);
   ngl::VAOPrimitives::instance()->createLineGrid("grid",20,20,100);
-  //m_text.reset(new ngl::Text(QFont("Arial",14)));
-  //m_text->setScreenSize(width(),height());
-  //m_text->setColour(1,1,0);
   shader->loadShader(ParticleShader,"shaders/ParticleVertex.glsl",
                                     "shaders/ParticleFragment.glsl");
 
   shader->use(ParticleShader);
-  //shader->setUniform("Colour",1.0f,1.0f,1.0f,1.f);
   ngl::Texture t("textures/texture.png");
   m_texID=t.setTextureGL();
   QtImGui::initialize(this);
@@ -140,71 +136,6 @@ void NGLScene::paintGL()
 }
 
 
-void NGLScene::EditTransform()
-{
-  ImGuizmo::BeginFrame();
-
-  static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
-  static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
-  if (ImGui::IsKeyPressed(90))
-    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-  if (ImGui::IsKeyPressed(69))
-    mCurrentGizmoOperation = ImGuizmo::ROTATE;
-  if (ImGui::IsKeyPressed(82)) // r Key
-    mCurrentGizmoOperation = ImGuizmo::SCALE;
-  if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
-    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-  ImGui::SameLine();
-  if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
-    mCurrentGizmoOperation = ImGuizmo::ROTATE;
-  ImGui::SameLine();
-  if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
-    mCurrentGizmoOperation = ImGuizmo::SCALE;
-  float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-
- // ImGuizmo::DecomposeMatrixToComponents(matrix.m16, matrixTranslation, matrixRotation, matrixScale);
-  ImGui::InputFloat3("Tr", matrixTranslation, 3);
-  ImGui::InputFloat3("Rt", matrixRotation, 3);
-  ImGui::InputFloat3("Sc", matrixScale, 3);
-  //ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix.m16);
-
-  if (mCurrentGizmoOperation != ImGuizmo::SCALE)
-  {
-    if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
-      mCurrentGizmoMode = ImGuizmo::LOCAL;
-    ImGui::SameLine();
-    if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
-      mCurrentGizmoMode = ImGuizmo::WORLD;
-  }
-  static bool useSnap(false);
-  if (ImGui::IsKeyPressed(83))
-    useSnap = !useSnap;
-  ImGui::Checkbox("", &useSnap);
-  ImGui::SameLine();
-  /*ImGuizmo::vec_t snap;
-  switch (mCurrentGizmoOperation)
-  {
-  case ImGuizmo::TRANSLATE:
-    snap = config.mSnapTranslation;
-    ImGui::InputFloat3("Snap", &snap.x);
-    break;
-  case ImGuizmo::ROTATE:
-    snap = config.mSnapRotation;
-    ImGui::InputFloat("Angle Snap", &snap.x);
-    break;
-  case ImGuizmo::SCALE:
-    snap = config.mSnapScale;
-    ImGui::InputFloat("Scale Snap", &snap.x);
-    break;
-  }*/
-  ImGuiIO& io = ImGui::GetIO();
-  const ngl::Mat4 projection = ngl::perspective(45.0f,float(m_win.width)/m_win.height,0.01f,500.0f);
-   ngl::Mat4 view=ngl::lookAt({0,2,2},{0,0,0},{0,1,0});
-
-  ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-  ngl::Mat4 matrix;
-  ImGuizmo::Manipulate(&view.m_openGL[0], &projection.m_openGL[0], mCurrentGizmoOperation, mCurrentGizmoMode, &matrix.m_openGL[0], nullptr,  nullptr);
-}
 
 void NGLScene::drawUI()
 {
@@ -219,8 +150,8 @@ void NGLScene::drawUI()
   "Particle System AVX2",
   "Particle System SSE-Random"
   };
-  static int whichSystem=4;
-  static int lastSystem=4;
+  static int whichSystem=1;
+  static int lastSystem=1;
   ImGui::Combo("System Type", &whichSystem, items,5);   // Combo using proper array. You can also pass a callback to retrieve array value, no need to create/copy an array just for that.
   if(whichSystem !=lastSystem)
   {

@@ -50,6 +50,7 @@ HEADERS+= $$PWD/include/NGLScene.h \
           $$PWD/include/random.h \
           $$PWD/include/AbstractParticleSystem.h \
           ../include/simd.h \
+          ../include/Benchmark.h \
           $$PWD/imgui/include/*.h
 # and add the include dir into the search path for Qt and make
 INCLUDEPATH+=./include
@@ -88,4 +89,5 @@ else{ # note brace must be here
 	message("Using custom NGL location")
 	include($(NGLDIR)/UseNGL.pri)
 }
+CONFIG+=c++14
 

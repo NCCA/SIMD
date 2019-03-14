@@ -18,7 +18,7 @@ void Bench(std::function<void(Mat2 &,const Mat2 &,const Mat2 &)> _func, const st
   Mat2 a;
   Mat2 b(1.0f,2.0f,3.0f,4.0f);
   Mat2 c(2.0f,3.0f,4.0f,5.0f);
-  Benchmark<std::chrono::high_resolution_clock,std::chrono::nanoseconds> bench(iterations,_name+".txt");
+  Benchmark<std::chrono::steady_clock,std::chrono::nanoseconds> bench(iterations,_name+".txt");
   bench.startTimer();
   for(size_t i=0; i<iterations; ++i)
   {

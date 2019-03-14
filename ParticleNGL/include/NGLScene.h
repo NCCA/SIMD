@@ -119,7 +119,7 @@ private:
   void drawUI();
   std::vector<float> m_updateTimes;
   std::vector<float> m_renderTimes;
-  int m_whichSystem=4;
+  int m_whichSystem=1;
   bool m_updateSystem=false;
   bool m_showUI=true;
   void EditTransform();
